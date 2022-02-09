@@ -36,7 +36,7 @@ class Net(nn.Module):
 def train(net, trainloader, epochs: int, verbose=False):
     """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
-    optimizer = torch.optim.AdamW(net.parameters(), lr=3e-04)
+    optimizer = torch.optim.AdamW(net.parameters())
     net.train()
     for epoch in range(epochs):
         correct, total, epoch_loss = 0, 0, 0.0
@@ -68,7 +68,7 @@ def test(net, testloader):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    loss /= len(testloader.dataset)
+    loss /= total
     accuracy = correct / total
     return loss, accuracy
 

@@ -1,41 +1,54 @@
-# Peer-reviewed Federated Learning
+# Peer-reviewed Federated Learning in Flower
 
-## Installazione
+Peer reviewed federated learning usign Flower.
 
-Creazione dell'ambiente virtuale con conda.
+## Installation
+
+Project dependencies (such as `torch` and `flwr`) are defined in `pyproject.toml`. 
+
+We recommend [Poetry](https://python-poetry.org/docs/) to install those dependencies and manage your virtual environment ([Poetry installation](https://python-poetry.org/docs/#installation)).
+
 ```shell
-conda create -n flenv python=3.8 ipykernel
+poetry install
+poetry shell
 ```
 
-Attivazione dell'ambiente virtuale appena creato.
+Poetry will install all your dependencies in a newly created virtual environment. To verify that everything works correctly you can run the following command:
+
 ```shell
-conda activate flenv
+python3 -c "import flwr"
 ```
 
-Installazione dipendenze richieste dal progetto.
-```shell
-conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-pip install git+https://github.com/passerim/flower.git@extended_modules
-```
+If you don't see any errors you're good to go!
 
-Per eliminare l'ambiente virtuale.
-```shell
-conda deactivate
-conda env remove --name flenv
-```
+## Class and sequence diagrams
 
-## Esecuzione
+### Sequence diagram of the federated training step:
 
-Per eseguire gli esempi di training centralizzato e federato eseguire gli script ```run.sh``` nelle rispettive directory. 
+![Sequence diagram](/imgs/sequenza.png)
 
-## Test
+### Class diagram of the federated training step:
 
-Per eseguire il test centralizzato.
+![Class diagram](/imgs/classi.png)
+
+## Examples
+
+To run the centralized, federated and federated with peer review training examples, run the ```run.sh``` scripts in their respective directories.
+
+## Tests
+
+To run the centralized test:
 ```shell
 python -m tests.test_centralized
 ```
 
-Per eseguire il test federato.
+To run the federated test:
 ```shell
 python -m tests.test_federated
+```
+
+To run the peer reviewed federated tests:
+```shell
+python -m tests.test_peer_reviewed
+python -m tests.test_fed_pr_equivalence
 ```

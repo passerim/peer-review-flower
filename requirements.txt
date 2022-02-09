@@ -1,0 +1,5 @@
+flwr==0.17.0
+ray==1.9.2
+torch==1.10.2
+torchvision==0.11.3
+ipykernel==6.8.0

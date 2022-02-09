@@ -15,12 +15,34 @@ FL_ROUNDS = 1
 PORT = 8089
 
 
-class TestCentralizedTraining(unittest.TestCase):
+def run_fl():
+    
+    server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
+    server.start()
+
+    clients = list()
+    for i in range(NUM_CLIENTS):
+        c = Process(target=setup_client, args=(PORT, NUM_CLIENTS, i))
+        c.start()
+        clients.append(c)
+
+    for c in clients:
+        c.join()
+
+    server.join()
+
+
+class TestFederatedTraining(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_done = False
         cls.setUp(cls)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if os.path.exists(LOGGING_FILE):
+            os.remove(LOGGING_FILE)
 
     def setUp(self) -> None:
 
@@ -29,19 +51,8 @@ class TestCentralizedTraining(unittest.TestCase):
 
         if os.path.exists(LOGGING_FILE):
             os.remove(LOGGING_FILE)
-        server = Process(target=setup_server, args=(PORT, LOGGING_FILE))
-        server.start()
-
-        clients = list()
-        for i in range(NUM_CLIENTS):
-            c = Process(target=setup_client, args=(PORT, NUM_CLIENTS, i))
-            c.start()
-            clients.append(c)
-
-        for c in clients:
-            c.join()
-
-        server.join()
+    
+        run_fl()
 
         self.setup_done = True
 
@@ -68,6 +79,3 @@ class TestCentralizedTraining(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-    if os.path.exists(LOGGING_FILE):
-            os.remove(LOGGING_FILE)

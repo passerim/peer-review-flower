@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 from flwr.common import (
@@ -5,51 +6,33 @@ from flwr.common import (
     FitRes,
     Parameters,
     Scalar,
+    Weights,
 )
 from flwr.server.client_manager import ClientManager
-from flwr.server.strategy import Strategy
 from flwr.server.client_proxy import ClientProxy
+from flwr.server.strategy import Strategy
 
 
 class PeerReviewStrategy(Strategy):
 
-    def configure_fit_eval(self, 
-                           rnd: int, 
-                           parameters: Parameters, 
-                           client_manager: ClientManager
-                           ) -> List[Tuple[ClientProxy, FitIns]]:
-        """Configure the next round of peer reviewing.
-        Parameters
-        ----------
-        rnd : int
-            The current round of federated learning.
-        parameters : Parameters
-            The current (global) model parameters.
-        client_manager : ClientManager
-            The client manager which holds all currently connected clients.
-        Returns
-        -------
-        A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
-        `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
-        is not included in this list, it means that this `ClientProxy`
-        will not participate in the next round of federated learning.
-        """
 
-
-    def aggregate_fit_eval(self,
-                           rnd: int,
-                           results: List[Tuple[ClientProxy, FitRes]],
-                           failures: List[BaseException],
-                           ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+    @abstractmethod
+    def aggregate_fit(
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
+    ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         """Aggregate peer review results.
+        
         Parameters
         ----------
         rnd : int
             The current round of federated learning.
         results : List[Tuple[ClientProxy, FitRes]]
-            Successful updates from the previously selected and configured
+            Successful reviews from the previously selected and configured
             clients. Each pair of `(ClientProxy, FitRes)` constitutes a
-            successful update from one of the previously selected clients. Not
+            successful review from one of the previously selected clients. Not
             that not all previously selected clients are necessarily included in
             this list: a client might drop out and not submit a result. For each
             client that did not submit an update, there should be an `Exception`
@@ -67,4 +50,40 @@ class PeerReviewStrategy(Strategy):
             results) then the server will no update the previous model
             parameters, the updates received in this round are discarded, and
             the global model parameters remain the same.
+        """
+
+
+    @abstractmethod
+    def aggregate_and_configure_review(
+        self, 
+        rnd: int, 
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
+    ) -> List[Tuple[ClientProxy, FitIns]]:
+        """Aggregate train results and configure the next round of peer review.
+
+        Parameters
+        ----------
+        rnd : int
+            The current round of federated learning.
+        results : List[Tuple[ClientProxy, FitRes]]
+            Successful updates from the previously selected and configured
+            clients. Each pair of `(ClientProxy, FitRes)` constitutes a
+            successful trained model update from one of the previously selected clients. 
+            Note that not all previously selected clients are necessarily included in
+            this list: a client might drop out and not submit a result. For each
+            client that did not submit an update, there should be an `Exception`
+            in `failures`.
+        failures : List[BaseException]
+            Exceptions that occurred while the server was waiting for client
+            updates.
+
+        Returns
+        -------
+        review_instructions: List[Tuple[ClientProxy, FitIns]]
+            A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
+            `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
+            is not included in this list, it means that this `ClientProxy`
+            will not participate in the current round of review.
+            The `FitIns` must include a flag to tell the clients this is a review round.
         """
