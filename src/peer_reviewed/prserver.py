@@ -25,7 +25,10 @@ class PeerReviewServer(Server):
 
     def __init__(self, client_manager: ClientManager, 
                  strategy: PeerReviewStrategy) -> None:
-        super().__init__(client_manager, strategy)
+        if isinstance(strategy, PeerReviewStrategy):
+            super().__init__(client_manager, strategy)
+        else:
+            self.fit_round = super().fit_round
 
     def _check_train(self, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]):
         for client, result in results:
@@ -71,12 +74,27 @@ class PeerReviewServer(Server):
             len(results), len(failures)
         )
 
+        # Aggregate training results
+        aggregated_result = self.strategy.aggregate_fit(rnd, results, failures)
+        metrics_aggregated = {}
+        if aggregated_result is None:
+            log(
+                WARNING, "Aggregated result cannot be empty!"
+            )
+            parameters_aggregated = None
+        else:
+            parameters_aggregated, metrics_aggregated = aggregated_result
+
         # Do-While loop
         while True:
 
-            # Aggregate training results an get review instructions from strategy
-            review_instructions = self.strategy.aggregate_and_configure_review(
-                rnd, results, failures
+            # Get clients and their respective review instructions from strategy
+            review_instructions = self.strategy.configure_review(
+                rnd=rnd, 
+                parameters=self.parameters, 
+                client_manager=self._client_manager, 
+                parameters_aggregated=parameters_aggregated, 
+                metrics_aggregated=metrics_aggregated
             )
             if not review_instructions:
                 log(INFO, "review_round: no clients selected, cancel"
@@ -87,8 +105,7 @@ class PeerReviewServer(Server):
                 len(review_instructions), self._client_manager.num_available()
             )
 
-            # Collect review results from all clients participating in this round,
-            # these will in practice be the results of the review round.
+            # Collect review results from all clients participating in this round.
             results, failures = fit_clients(
                 review_instructions
             )
@@ -98,16 +115,31 @@ class PeerReviewServer(Server):
                 len(results), len(failures),
             )
 
+            # Aggregate review results
+            aggregated_result = self.strategy.aggregate_review(rnd, results, failures)
+            metrics_aggregated = {}
+            if aggregated_result is None:
+                log(
+                    WARNING, "Aggregated result cannot be empty!"
+                )
+                parameters_aggregated = None
+            else:
+                parameters_aggregated, metrics_aggregated = aggregated_result
+
             # Stop condition, while...
-            if True: 
+            if self.strategy.stop_review(
+                rnd=rnd, parameters=self.parameters, client_manager=self.client_manager,
+                parameters_aggregated=parameters_aggregated, metrics_aggregated=metrics_aggregated
+            ): 
                 break
 
-        # Aggregate review results
-        aggregated_result = self.strategy.aggregate_fit(rnd, results, failures)
-        if aggregated_result is None:
+        # Aggregate training results
+        parameters_aggregated = self.strategy.aggregate_after_review(
+            rnd, parameters_aggregated, self.parameters
+        )
+        if parameters_aggregated is None:
             log(
-                WARNING, "Aggregated result cannot be empty!"
+                WARNING, """Aggregated parameters are empty! 
+                Skipping this round of federated learning"""
             )
-            parameters_aggregated = None
-        parameters_aggregated, _ = aggregated_result
         return parameters_aggregated, None, None

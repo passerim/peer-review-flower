@@ -3,7 +3,6 @@ from functools import partial
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
-
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler

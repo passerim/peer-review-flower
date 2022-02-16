@@ -23,10 +23,9 @@ class TestCentralizedTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
-
-        set_seed(SEED)
-
+        
         # Load model
+        set_seed(SEED)
         net = Net().to(DEVICE)
 
         # Load data
@@ -43,7 +42,6 @@ class TestCentralizedTraining(unittest.TestCase):
 
         # Check metrics after training
         self.loss_after_epoch, self.accuracy_after_epoch = test(net, testloader, device=DEVICE)
-
         self.setup_done = True
 
     def test_loss_start(self):

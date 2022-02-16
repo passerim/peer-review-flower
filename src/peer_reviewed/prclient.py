@@ -1,17 +1,14 @@
 from abc import abstractmethod
 from typing import Dict, List, Tuple
-import numpy as np
 
-from flwr.common import (
-    Scalar,
-)
+import numpy as np
+from flwr.common import Scalar
 from flwr.client import NumPyClient
 
 from .prconfig import *
 
 
 class PeerReviewClient(NumPyClient):
-
 
     @abstractmethod
     def review(
@@ -40,7 +37,6 @@ class PeerReviewClient(NumPyClient):
             bool, bytes, float, int, or str. It can be used to communicate
             arbitrary values back to the server.
         """
-
        
     @abstractmethod
     def train(
@@ -69,7 +65,6 @@ class PeerReviewClient(NumPyClient):
             bool, bytes, float, int, or str. It can be used to communicate
             arbitrary values back to the server.
         """
-
 
     def fit(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]

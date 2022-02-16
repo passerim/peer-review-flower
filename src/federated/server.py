@@ -41,7 +41,7 @@ def main():
     parser.add_argument("--port", type=int, choices=range(0, 65535), required=True)
     parser.add_argument("--num_rounds", type=int, choices=range(0, 65535), default=1)
     args = parser.parse_args()
-    setup_server(args.port)
+    setup_server(args.port, args.num_rounds)
 
 
 if __name__ == "__main__":

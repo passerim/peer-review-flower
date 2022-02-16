@@ -1,8 +1,8 @@
+import random
 from typing import List
 from collections import OrderedDict
 
 import torch
-import random
 import numpy as np
 
 
@@ -12,8 +12,10 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
+
 def get_parameters(model) -> List[np.ndarray]:
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
+
 
 def set_parameters(model, parameters: List[np.ndarray]):
     params_dict = zip(model.state_dict().keys(), parameters)

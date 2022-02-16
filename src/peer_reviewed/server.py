@@ -18,10 +18,11 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
 
     # Define strategy
     strategy = PeerReviewedFedAvg(
-        fraction_review=1.0,
         fraction_fit=1.0,
+        fraction_review=1.0,
         fraction_eval=1.0,
         min_fit_clients=2,
+        min_review_clients=2,
         min_eval_clients=2,
         min_available_clients=2,
         initial_parameters=fl.common.weights_to_parameters(params),

@@ -16,7 +16,6 @@ PORT = 8090
 
 
 def run_fl():
-    
     server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
     server.start()
 
@@ -28,7 +27,6 @@ def run_fl():
 
     for c in clients:
         c.join()
-
     server.join()
 
 
@@ -45,12 +43,11 @@ class TestPeerReviewedTraining(unittest.TestCase):
             os.remove(LOGGING_FILE)
 
     def setUp(self) -> None:
-
         if self.setup_done:
             return
-
         if os.path.exists(LOGGING_FILE):
             os.remove(LOGGING_FILE)
+            
         server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
         server.start()
 
@@ -62,9 +59,7 @@ class TestPeerReviewedTraining(unittest.TestCase):
 
         for c in clients:
             c.join()
-
         server.join()
-
         self.setup_done = True
 
     def test_logging_file(self):

@@ -8,6 +8,7 @@ from torch.utils.data.distributed import DistributedSampler
 from ..centralized.centralized import Net, load_data, train, test
 from ..utils.pytorch import set_seed, get_parameters, set_parameters
 
+
 SEED = 0
 BATCH_SIZE = 32
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
