@@ -5,12 +5,12 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
-from ..utils.utils import set_seed
+from ..utils.pytorch import set_seed
 
 
 SEED = 0
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 32
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Net(nn.Module):
@@ -33,15 +33,15 @@ class Net(nn.Module):
         return x
 
 
-def train(net, trainloader, epochs: int, verbose=False):
+def train(net, trainloader, epochs: int, device="cpu",  verbose=False):
     """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
-    optimizer = torch.optim.AdamW(net.parameters())
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     net.train()
     for epoch in range(epochs):
         correct, total, epoch_loss = 0, 0, 0.0
         for images, labels in trainloader:
-            images, labels = images.to(DEVICE), labels.to(DEVICE)
+            images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(images)
             loss = criterion(net(images), labels)
@@ -55,14 +55,15 @@ def train(net, trainloader, epochs: int, verbose=False):
         if verbose:
             print(f"Epoch {epoch+1}: train loss {epoch_loss}, accuracy {epoch_acc}")
 
-def test(net, testloader):
+
+def test(net, testloader, device="cpu"):
     """Evaluate the network on the entire test set."""
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     correct, total, loss = 0, 0, 0.0
     net.eval()
     with torch.no_grad():
         for images, labels in testloader:
-            images, labels = images.to(DEVICE), labels.to(DEVICE)
+            images, labels = images.to(device), labels.to(device)
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
@@ -75,6 +76,7 @@ def test(net, testloader):
 
 def load_data():
     """Load CIFAR-10 (training and test set)."""
+    
     # Normalizes pixels value between -1 and +1
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -86,7 +88,6 @@ def load_data():
 
 
 def main():
-
     set_seed(SEED)
 
     # Load model
@@ -98,10 +99,8 @@ def main():
     testloader = DataLoader(testset, batch_size=BATCH_SIZE)
 
     # Start centralized training
-    train(net, trainloader, epochs=5, verbose=True)
-
-    loss, accuracy = test(net, testloader)
-
+    train(net, trainloader, epochs=5, device=DEVICE, verbose=True)
+    loss, accuracy = test(net, testloader, device=DEVICE)
     print(f"Final test set performance: loss {loss}, accuracy {accuracy}")
 
 

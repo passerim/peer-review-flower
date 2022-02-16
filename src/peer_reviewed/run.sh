@@ -2,10 +2,11 @@
 
 PORT=$1
 NUM_CLIENTS=$2
+NUM_ROUNDS=$3
 
 cd ../../
 
-python -m src.peer_reviewed.server --port $PORT &
+python -m src.peer_reviewed.server --port $PORT --num_rounds $NUM_ROUNDS &
 
 # Sleep for 5s to give the server enough time to start
 sleep 5

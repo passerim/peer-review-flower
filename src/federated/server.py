@@ -4,16 +4,14 @@ import flwr as fl
 from flwr.server.strategy import FedAvg
 
 from ..centralized.centralized import Net
-from ..utils.utils import set_seed, get_parameters
+from ..utils.pytorch import set_seed, get_parameters
 
 
 SEED = 0
 
 
 def setup_server(port: int, num_rounds=1, logging_file: str = None):
-    
     set_seed(SEED)
-
     params = get_parameters(Net())
 
     # Define strategy
@@ -26,8 +24,10 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
         initial_parameters=fl.common.weights_to_parameters(params),
     )
 
+    # Set up logging if a log file is specified
     if logging_file:
         fl.common.logger.configure("server", filename=logging_file)
+    
     # Start server
     fl.server.start_server(
         server_address=f"localhost:{port}",
@@ -37,12 +37,10 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
 
 
 def main():
-    # Parse command line argument `partition`
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, choices=range(0, 65535), required=True)
     parser.add_argument("--num_rounds", type=int, choices=range(0, 65535), default=1)
     args = parser.parse_args()
-
     setup_server(args.port)
 
 

@@ -3,9 +3,6 @@ from typing import Callable, Dict, List, Optional, Tuple
 from copy import deepcopy
 import numpy as np
 
-from flwr.server.strategy.aggregate import aggregate
-
-
 from flwr.common import (
     EvaluateIns,
     EvaluateRes,

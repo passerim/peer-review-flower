@@ -5,7 +5,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.centralized.centralized import load_data, train, test, Net
-from src.utils.utils import set_seed
+from src.utils.pytorch import set_seed
+
+
+SEED = 0
+BATCH_SIZE = 32
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class TestCentralizedTraining(unittest.TestCase):
 
@@ -15,34 +21,28 @@ class TestCentralizedTraining(unittest.TestCase):
         cls.setUp(cls)
 
     def setUp(self) -> None:
-
         if self.setup_done:
             return
 
-        seed = 0
-        batch_size = 32
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-        set_seed(seed)
+        set_seed(SEED)
 
         # Load model
-        net = Net().to(device)
+        net = Net().to(DEVICE)
 
         # Load data
         trainset, testset, _ = load_data()
         self.num_classes = len(trainset.classes)
-        generator = torch.Generator()
-        generator.manual_seed(seed)
-        trainloader = DataLoader(trainset, batch_size=batch_size, 
-                                 shuffle=True, generator=generator)
-        testloader = DataLoader(testset, batch_size=batch_size, shuffle=False)
+        trainloader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True)
+        testloader = DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False)
 
-        self.loss_start, self.accuracy_start = test(net, testloader)
+        # Check metrics before training
+        self.loss_start, self.accuracy_start = test(net, testloader, device=DEVICE)
 
         # Start centralized training
-        train(net, trainloader, epochs=1, verbose=True)
+        train(net, trainloader, epochs=1, device=DEVICE, verbose=True)
 
-        self.loss_after_epoch, self.accuracy_after_epoch = test(net, testloader)
+        # Check metrics after training
+        self.loss_after_epoch, self.accuracy_after_epoch = test(net, testloader, device=DEVICE)
 
         self.setup_done = True
 
@@ -57,6 +57,7 @@ class TestCentralizedTraining(unittest.TestCase):
 
     def test_accuracy_after_epoch(self):
         self.assertGreater(self.accuracy_after_epoch, 1/self.num_classes)
+
 
 if __name__ == "__main__":
     unittest.main()
