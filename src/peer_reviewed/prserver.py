@@ -1,5 +1,6 @@
 from logging import DEBUG, INFO, WARNING
 from typing import Dict, List, Optional, Tuple
+from overrides import overrides
 
 import flwr as fl
 from flwr.common import (
@@ -48,12 +49,13 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
+    @overrides
     def fit_round(self, rnd: int) -> Optional[Tuple[Optional[Parameters], 
                                                     Dict[str, Scalar], 
                                                     FitResultsAndFailures]]:
 
         # Get clients and their respective instructions from strategy
-        client_instructions = self.strategy.configure_fit(
+        client_instructions = self.strategy.configure_train(
             rnd=rnd, parameters=self.parameters, client_manager=self._client_manager
         )
         if not client_instructions:
@@ -75,7 +77,7 @@ class PeerReviewServer(Server):
         )
 
         # Aggregate training results
-        aggregated_result = self.strategy.aggregate_fit(rnd, results, failures)
+        aggregated_result = self.strategy.aggregate_train(rnd, results, failures)
         metrics_aggregated = {}
         if aggregated_result is None:
             log(

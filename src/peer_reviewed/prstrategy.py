@@ -1,11 +1,13 @@
 from abc import abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
+from overrides import overrides
 
 from flwr.common import (
     FitIns,
     FitRes,
     Parameters,
     Scalar,
+    Weights
 )
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
@@ -14,8 +16,49 @@ from flwr.server.strategy import Strategy
 
 class PeerReviewStrategy(Strategy):
 
-    @abstractmethod
+    @overrides
+    def configure_fit(
+        self, 
+        rnd: int, 
+        parameters: Parameters, 
+        client_manager: ClientManager
+    ) -> List[Tuple[ClientProxy, FitIns]]:
+        return self.configure_train(rnd, parameters, client_manager)
+
+    @overrides
     def aggregate_fit(
+        self, 
+        rnd: int, 
+        results: List[Tuple[ClientProxy, FitRes]], 
+        failures: List[BaseException]
+    ) -> Union[Tuple[Optional[Parameters], Dict[str, Scalar]], Optional[Weights]]:
+        return self.aggregate_train(rnd, results, failures)[0]
+
+    @abstractmethod
+    def configure_train(
+        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+    ) -> List[Tuple[ClientProxy, FitIns]]:
+        """Configure the next round of training.
+
+        Parameters
+        ----------
+        rnd : int
+            The current round of federated learning.
+        parameters : Parameters
+            The current (global) model parameters.
+        client_manager : ClientManager
+            The client manager which holds all currently connected clients.
+
+        Returns
+        -------
+        A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
+        `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
+        is not included in this list, it means that this `ClientProxy`
+        will not participate in the next round of federated learning.
+        """
+
+    @abstractmethod
+    def aggregate_train(
         self,
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
@@ -37,6 +80,7 @@ class PeerReviewStrategy(Strategy):
         failures : List[BaseException]
             Exceptions that occurred while the server was waiting for client
             updates.
+            
         Returns
         -------
         parameters: List[Parameters (optional)]
@@ -166,7 +210,7 @@ class PeerReviewStrategy(Strategy):
         parameters_aggregated: List[Optional[Parameters]], 
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
-        """Stop condition to decide wheather or not to continue with another review round.
+        """Stop condition to decide whether or not to continue with another review round.
 
         Parameters
         ----------

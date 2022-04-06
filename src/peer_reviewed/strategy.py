@@ -88,56 +88,72 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         rep = f"PeerReviewedFedAvg(accept_failures={self.accept_failures})"
         return rep
  
-    def aggregate_and_configure_review(
-        self,
-        rnd: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
-    ) -> List[Tuple[ClientProxy, List[Tuple[Optional[Parameters], Dict[str, Scalar]]]]]:
-        """Aggregate train results and configure review."""
+    # def aggregate_and_configure_review(
+    #     self,
+    #     rnd: int,
+    #     results: List[Tuple[ClientProxy, FitRes]],
+    #     failures: List[BaseException],
+    # ) -> List[Tuple[ClientProxy, List[Tuple[Optional[Parameters], Dict[str, Scalar]]]]]:
+    #     """Aggregate train results and configure review."""
 
-        if not results:
-            return None
-        # Do not aggregate if there are failures and failures are not accepted
-        if not self.accept_failures and failures:
-            return None
+    #     if not results:
+    #         return None
+    #     # Do not aggregate if there are failures and failures are not accepted
+    #     if not self.accept_failures and failures:
+    #         return None
 
-        review_instructions = []
-        num_results = len(results)
-        idxs = list(range(num_results))
-        while len(idxs) > 0:
-            if len(idxs) > int(num_results*self.fraction_review):
-                curr_idxs = np.random.choice(
-                    idxs, 
-                    size=int(num_results*self.fraction_review), 
-                    replace=False
-                )
-            else:
-                curr_idxs = deepcopy(idxs)
-            aggregated_result = self._aggregate(
-                [
-                    (
-                        parameters_to_weights(result.parameters), 
-                        result.num_examples
-                    )
-                    for client, result 
-                    in map(results.__getitem__, curr_idxs)
-                ]
-            )
-            review_ins = FitIns(
-                weights_to_parameters(aggregated_result), 
-                {REVIEW_FLAG: True}
-            )
-            curr_instructions = [
-                (client, review_ins) 
-                for client, result 
-                in map(results.__getitem__, curr_idxs)
-            ]
-            review_instructions.extend(curr_instructions)
-            for idx in curr_idxs:
-                idxs.remove(idx)
+    #     review_instructions = []
+    #     num_results = len(results)
+    #     idxs = list(range(num_results))
+    #     while len(idxs) > 0:
+    #         if len(idxs) > int(num_results*self.fraction_review):
+    #             curr_idxs = np.random.choice(
+    #                 idxs, 
+    #                 size=int(num_results*self.fraction_review), 
+    #                 replace=False
+    #             )
+    #         else:
+    #             curr_idxs = deepcopy(idxs)
+    #         aggregated_result = self._aggregate(
+    #             [
+    #                 (
+    #                     parameters_to_weights(result.parameters), 
+    #                     result.num_examples
+    #                 )
+    #                 for client, result 
+    #                 in map(results.__getitem__, curr_idxs)
+    #             ]
+    #         )
+    #         review_ins = FitIns(
+    #             weights_to_parameters(aggregated_result), 
+    #             {REVIEW_FLAG: True}
+    #         )
+    #         curr_instructions = [
+    #             (client, review_ins) 
+    #             for client, result 
+    #             in map(results.__getitem__, curr_idxs)
+    #         ]
+    #         review_instructions.extend(curr_instructions)
+    #         for idx in curr_idxs:
+    #             idxs.remove(idx)
         
-        return review_instructions
+    #     return review_instructions
+
+    def configure_train(
+        self, 
+        rnd: int, 
+        parameters: Parameters, 
+        client_manager: ClientManager
+    ) -> List[Tuple[ClientProxy, FitIns]]:
+        return super().configure_fit(rnd, parameters, client_manager)
+    
+    def aggregate_train(
+        self, 
+        rnd: int, 
+        results: List[Tuple[ClientProxy, FitRes]], 
+        failures: List[BaseException]
+    ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
+        return super().aggregate_fit(rnd, results, failures)
 
     def configure_review(
         self, 
@@ -248,5 +264,5 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         parameters_aggregated: List[Optional[Parameters]], 
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
-        """Stop condition to decide wheather or not to continue with another review round."""
+        """Stop condition to decide whether or not to continue with another review round."""
         return True

@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, List, Tuple
+from overrides import overrides
 
 import numpy as np
 from flwr.common import Scalar
@@ -66,6 +67,7 @@ class PeerReviewClient(NumPyClient):
             arbitrary values back to the server.
         """
 
+    @overrides
     def fit(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
