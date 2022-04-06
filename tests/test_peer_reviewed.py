@@ -4,8 +4,8 @@ import math
 import unittest
 from multiprocessing import Process
 
-from src.peer_reviewed.client import setup_client
-from src.peer_reviewed.server import setup_server
+from examples.peer_reviewed.client import setup_client
+from examples.peer_reviewed.server import setup_server
 
 
 LOGGING_FILE = "./tests/test_peer_reviewed.log"

@@ -7,12 +7,12 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
-from ...centralized.centralized import Net, load_data
-from ...utils.pytorch import set_seed, get_parameters
-from ..strategy import PeerReviewedFedAvg
-from ..prserver import PeerReviewServer
-from ..client import CifarClient
-from .app import start_simulation
+from ..centralized.centralized import Net, load_data
+from prflwr.utils.pytorch import set_seed, get_parameters
+from ..peer_reviewed.strategy import PeerReviewedFedAvg
+from prflwr.peer_reviewed.prserver import PeerReviewServer
+from ..peer_reviewed.client import CifarClient
+from prflwr.simulation.app import start_simulation
 
 
 SEED = 0

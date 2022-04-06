@@ -4,8 +4,8 @@ import math
 import unittest
 from multiprocessing import Process
 
-from src.federated.client import setup_client
-from src.federated.server import setup_server
+from examples.federated.client import setup_client
+from examples.federated.server import setup_server
 
 
 LOGGING_FILE = "./tests/test_federated.log"

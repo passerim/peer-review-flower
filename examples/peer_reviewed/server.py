@@ -4,9 +4,9 @@ import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
 
 from ..centralized.centralized import Net
-from ..utils.pytorch import set_seed, get_parameters
-from .strategy import PeerReviewedFedAvg
-from .prserver import PeerReviewServer
+from prflwr.utils.pytorch import set_seed, get_parameters
+from strategy import PeerReviewedFedAvg
+from prflwr.peer_reviewed.prserver import PeerReviewServer
 
 
 SEED = 0

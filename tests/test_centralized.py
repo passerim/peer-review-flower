@@ -4,8 +4,8 @@ import unittest
 import torch
 from torch.utils.data import DataLoader
 
-from src.centralized.centralized import load_data, train, test, Net
-from src.utils.pytorch import set_seed
+from examples.centralized.centralized import load_data, train, test, Net
+from prflwr.utils.pytorch import set_seed
 
 
 SEED = 0

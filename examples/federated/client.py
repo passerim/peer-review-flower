@@ -2,13 +2,11 @@ import argparse
 
 import flwr as fl
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from ..centralized.centralized import Net, load_data, train, test
-from ..utils.pytorch import set_seed, get_parameters, set_parameters
-from .prclient import PeerReviewClient
+from prflwr.utils.pytorch import set_seed, get_parameters, set_parameters
 
 
 SEED = 0
@@ -16,9 +14,9 @@ BATCH_SIZE = 32
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class CifarClient(PeerReviewClient):
+class CifarClient(fl.client.NumPyClient):
 
-    def __init__(self, model: nn.Module, trainloader: DataLoader, testloader: DataLoader):
+    def __init__(self, model: torch.nn.Module, trainloader, testloader):
         self.model = model
         self.trainloader = trainloader
         self.testloader = testloader
@@ -26,18 +24,13 @@ class CifarClient(PeerReviewClient):
     def get_parameters(self):
         return get_parameters(self.model)
 
-    def train(self, parameters, config):
+    def fit(self, parameters, config):
         set_parameters(self.model, parameters)
         epochs = 1
         if config.get("num_epochs") and isinstance(config.get("num_epochs"), int):
             epochs = config.get["num_epochs"]
         train(self.model, self.trainloader, epochs=epochs, device=DEVICE)
         return get_parameters(self.model), len(self.trainloader.dataset), {}
-
-    def review(self, parameters, config):
-        set_parameters(self.model, parameters)
-        loss, _ = test(self.model, self.testloader, device=DEVICE)
-        return get_parameters(self.model), len(self.testloader.dataset), float(loss)
 
     def evaluate(self, parameters, config):
         set_parameters(self.model, parameters)
