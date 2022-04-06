@@ -3,3 +3,4 @@ data/cifar10/
 *.log
 *.lock
 imgs/*.txt
+.NOTES

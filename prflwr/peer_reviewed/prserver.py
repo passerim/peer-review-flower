@@ -68,7 +68,8 @@ class PeerReviewServer(Server):
 
         # Collect training results from all clients participating in this round
         results, failures = fit_clients(
-            client_instructions
+            client_instructions,
+            max_workers=self.max_workers,
         )
         results, failures = self._check_train(results, failures)
         log(
@@ -109,7 +110,8 @@ class PeerReviewServer(Server):
 
             # Collect review results from all clients participating in this round.
             results, failures = fit_clients(
-                review_instructions
+                client_instructions,
+                max_workers=self.max_workers,
             )
             results, failures = self._check_review(results, failures) 
             log(
