@@ -1,6 +1,17 @@
-data/cifar10/
+# Python cache
 *__pycache__*
+
+# Virtual environments directory
+envs
+.envs
+
+# Temp and log files
 *.log
-*.lock
-imgs/*.txt
+
+# Project specific local directories
+data/*
+out
+
+# My utility files and directories
 .NOTES
+doc/*.md

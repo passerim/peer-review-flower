@@ -1,21 +1,3 @@
 [build-system]
-requires = [
-    "poetry==1.1.12",
-]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-name = "peer_reviewed_flower"
-version = "0.1.0"
-description = "Federated Learning with Peer Review using Flower."
-authors = [
-    "Mattia Passeri <mattia.passeri2@studio.unibo.it>"
-]
-
-[tool.poetry.dependencies]
-python = "3.7.4"
-flwr = {extras = ["simulation"], version = "0.18.0"}
-torch = "1.11.0"
-torchvision = "0.12"
-ipykernel = "6.8.0"
-overrides = "6.1.0"
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"

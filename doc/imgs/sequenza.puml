@@ -1,0 +1,24 @@
+@startuml sequenza
+PeerReviewedServer -> PeerReviewedStrategy: configure_train()
+PeerReviewedStrategy -> ClientManager: sample()
+ClientManager -> PeerReviewedStrategy: clients
+PeerReviewedStrategy -> PeerReviewedServer: client_instructions
+PeerReviewedServer -> PeerReviewedClient: fit_client(client_instructions, REVIEW=False|None)
+PeerReviewedClient -> PeerReviewedServer: FitRes(REVIEW=False)
+PeerReviewedServer -> PeerReviewedStrategy: aggregated_result()
+PeerReviewedStrategy -> PeerReviewedServer: aggregated_result
+loop do while stop_flag != TRUE
+    PeerReviewedServer -> PeerReviewedStrategy: configure_review(aggregated_result)
+    PeerReviewedStrategy -> ClientManager: sample()
+    ClientManager -> PeerReviewedStrategy: clients
+    PeerReviewedStrategy -> PeerReviewedServer: review_instructions
+    PeerReviewedServer -> PeerReviewedClient: fit_client(review_instructions, REVIEW=True)
+    PeerReviewedClient -> PeerReviewedServer: FitRes(REVIEW=True)
+    PeerReviewedServer -> PeerReviewedStrategy: aggregate_review()
+    PeerReviewedStrategy -> PeerReviewedServer: aggregated_result
+    PeerReviewedServer -> PeerReviewedStrategy: stop_review(aggregated_result)
+    PeerReviewedStrategy -> PeerReviewedServer: stop_flag
+end
+PeerReviewedServer -> PeerReviewedStrategy: aggregate_after_review(aggregated_result)
+PeerReviewedStrategy -> PeerReviewedServer: parameters_aggregated
+@enduml

@@ -100,8 +100,10 @@ def start_simulation(
         initialized_server.client_manager().register(client=client_proxy)
 
     # Start training
-    _fl(
+    hist = _fl(
         server=initialized_server,
         config=initialized_config,
         force_final_distributed_eval=False,
     )
+    
+    return hist

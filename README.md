@@ -25,11 +25,11 @@ If you don't see any errors you're good to go!
 
 ### Sequence diagram of the federated training step:
 
-![Sequence diagram](/imgs/sequenza.png)
+![Sequence diagram](./doc/imgs/sequenza.png)
 
 ### Class diagram of the federated training step:
 
-![Class diagram](/imgs/classi.png)
+![Class diagram](./doc/imgs/classi.png)
 
 ## Examples
 

@@ -1,0 +1,83 @@
+@startuml classi
+package flwr.server <<Rectangle>> {
+
+    class Server {
+        set_max_workers()
+        set_strategy()
+        set_strategy()
+        client_manager()
+        evaluate_round()
+        fit_round()
+        disconnect_all_clients()
+        fit()
+    }
+
+    interface Strategy {
+        initialize_parameters()
+        configure_fit()
+        aggregate_fit()
+        configure_evaluate()
+        aggregate_evaluate()
+        evaluate()
+    }
+
+    abstract ClientManager {
+        num_available()
+        sample()
+    }
+
+    class SimpleClientManager{
+    }
+
+}
+
+package flwr.client <<Rectangle>> {
+
+    interface NumpyClient {
+        get_parameters()
+        fit()
+        evaluate()
+    }
+
+}
+
+package peer_reviewed <<Rectangle>> {
+
+    abstract PeerReviewedClient {
+        train()
+        review()
+    }
+
+    class ClientImpl{
+    }
+
+    class PeerReviewedServer{
+    }
+
+    interface MultipleReviewStrategy {
+        configure_train()
+        aggregate_train()
+        configure_review()
+        aggregate_review()
+        aggregate_after_review()
+        stop_review()
+    }
+
+    abstract PeerReviewedStrategy {
+    }
+
+    class PeerReviewedStrategyImpl{
+    }
+
+}
+
+ClientManager <|-- SimpleClientManager
+Server <|-- PeerReviewedServer
+PeerReviewedClient <|-- ClientImpl
+NumpyClient <|-- PeerReviewedClient
+Strategy <|-- MultipleReviewStrategy
+MultipleReviewStrategy <|-- PeerReviewedStrategy
+PeerReviewedStrategy <|-- PeerReviewedStrategyImpl
+PeerReviewedStrategyImpl --o PeerReviewedServer
+SimpleClientManager --o PeerReviewedServer
+@enduml
