@@ -69,8 +69,8 @@ setup(
     #
     install_requires=[
         "flwr[simulation]==0.18",
-        "torch",
-        "torchvision",
-        "overrides"
+        "torch==1.11.0",
+        "torchvision==0.12.0",
+        "overrides==6.1.0"
     ],  # Optional
 )

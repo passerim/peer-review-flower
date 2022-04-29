@@ -17,6 +17,7 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
+from overrides.overrides import overrides
 
 from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
 from prflwr.peer_reviewed.prconfig import REVIEW_FLAG
@@ -88,6 +89,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         rep = f"PeerReviewedFedAvg(accept_failures={self.accept_failures})"
         return rep
 
+    @overrides
     def configure_train(
         self,
         rnd: int,
@@ -96,6 +98,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     ) -> List[Tuple[ClientProxy, FitIns]]:
         return super().configure_fit(rnd, parameters, client_manager)
 
+    @overrides
     def aggregate_train(
         self,
         rnd: int,
@@ -104,9 +107,11 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         return super().aggregate_fit(rnd, results, failures)
 
+    @overrides
     def configure_review(
         self,
         rnd: int,
+        review_rnd: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -164,14 +169,16 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
                 idxs.remove(idx)
         return review_instructions
 
+    @overrides
     def aggregate_review(
         self,
         rnd: int,
+        review_rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
 
-        # Do not aggregate if there are no results or 
+        # Do not aggregate if there are no results or
         # if there are failures and failures are not accepted
         if not results:
             return None
@@ -189,24 +196,28 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         aggregated_result = weights_to_parameters(aggregated_result)
         return [aggregated_result], [{}]
 
+    @overrides
     def aggregate_after_review(
         self,
         rnd: int,
-        review_results: List[Optional[Parameters]],
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
         parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
         aggregated_result = aggregate(
             [
                 (parameters_to_weights(parameters), 1)
                 for parameters
-                in review_results
+                in parameters_aggregated
             ]
         )
         return weights_to_parameters(aggregated_result)
 
+    @overrides
     def stop_review(
         self,
         rnd: int,
+        review_rnd: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],

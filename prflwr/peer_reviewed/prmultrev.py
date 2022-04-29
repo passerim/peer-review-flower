@@ -115,6 +115,7 @@ class MultipleReviewStrategy(Strategy):
     def aggregate_review(
         self,
         rnd: int,
+        review_rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
@@ -151,7 +152,8 @@ class MultipleReviewStrategy(Strategy):
     def aggregate_after_review(
         self,
         rnd: int,
-        review_results: List[Tuple[Optional[Parameters], Dict[str, Scalar]]],
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
         parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
         """Aggregate results of the last round of review.
@@ -181,6 +183,7 @@ class MultipleReviewStrategy(Strategy):
     def stop_review(
         self,
         rnd: int,
+        review_rnd: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],

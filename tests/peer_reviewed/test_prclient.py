@@ -64,7 +64,7 @@ class ClientReview(FailingClient):
         parameters: List[np.ndarray],
         config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Scalar]:
-        raise Exception
+        return parameters, 0, 1
 
 
 class TestPeerReviewClient(unittest.TestCase):
@@ -85,11 +85,10 @@ class TestPeerReviewClient(unittest.TestCase):
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {REVIEW_FLAG: False}
-        _, _, train_conf = client.fit(parameters, fit_config)
         try:
             client.fit(parameters, fit_config)
         except Exception as e:
-            self.assertTrue(isinstance(e, Exception))
+            self.assertIsInstance(e, Exception)
 
     def test_review_success(self):
         client = ClientReview()
@@ -104,11 +103,10 @@ class TestPeerReviewClient(unittest.TestCase):
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {REVIEW_FLAG: False}
-        _, _, train_conf = client.fit(parameters, fit_config)
         try:
             client.fit(parameters, fit_config)
         except Exception as e:
-            self.assertTrue(isinstance(e, Exception))
+            self.assertIsInstance(e, Exception)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ data/*
 out
 
 # mypy cache
-.mypy_cache
+*.mypy_cache
 
 # My utility files and directories
 .NOTES

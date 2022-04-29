@@ -15,7 +15,7 @@ from prflwr.simulation.app import start_simulation
 class NamedSimulationClient(ClientProxy):
 
     def __init__(self, cid: str):
-        super().init(cid)
+        super().__init__(cid)
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         arr_serialized = ndarray_to_bytes(arr)
         self.parameters = Parameters(tensors=[arr_serialized], tensor_type="")
@@ -52,13 +52,13 @@ class TestCentralizedTraining(unittest.TestCase):
             min_eval_clients=2,
             min_available_clients=2,
         )
-        assert isinstance(strategy, PeerReviewStrategy)
+        self.assertIsInstance(strategy, PeerReviewStrategy)
 
         # Define server and assert it is a sublass of PeerReviewServer
         server = PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         )
-        assert isinstance(server, PeerReviewServer)
+        self.assertIsInstance(server, PeerReviewServer)
 
         # Start simulation and assert a value for hist is actually returned
         hist = start_simulation(
@@ -68,7 +68,7 @@ class TestCentralizedTraining(unittest.TestCase):
             strategy=strategy,
             server=server
         )
-        assert hist is not None
+        self.assertIsNotNone(hist)
 
 
 if __name__ == "__main__":

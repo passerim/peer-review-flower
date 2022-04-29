@@ -1,9 +1,9 @@
 flwr[simulation]==0.18
-torch
-torchvision
+torch==1.11.0
+torchvision==0.12.0
 redis
 ipykernel
-overrides
+overrides==6.1.0
 flake8
 mypy
 isort

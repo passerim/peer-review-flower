@@ -30,6 +30,7 @@ class PeerReviewServer(Server):
             self.fit = super().fit
         self.set_max_workers(max_workers)
 
+    @overrides
     def fit(self, num_rounds: int) -> History:
         """Run federated learning with peer review for a number of rounds."""
         history = History()
@@ -44,10 +45,10 @@ class PeerReviewServer(Server):
             # Multiple reviews loop
             for current_review in range(self.max_review_rounds):
                 parameters_aggregated, metrics_aggregated, _ = self.review_round(
-                    current_round,
-                    current_review,
-                    parameters_aggregated,
-                    metrics_aggregated,
+                    rnd=current_round,
+                    review_rnd=current_review,
+                    parameters_aggregated=parameters_aggregated,
+                    metrics_aggregated=metrics_aggregated,
                 )
                 if self.strategy.stop_review(
                     current_round,
@@ -128,7 +129,7 @@ class PeerReviewServer(Server):
                     rnd=current_round, metrics=evaluate_metrics_fed
                 )
 
-    def _check_train(
+    def check_train(
         self, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
     ):
         for client, result in results:
@@ -139,7 +140,7 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
-    def _check_review(
+    def check_review(
         self, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
     ):
         for client, result in results:
@@ -150,11 +151,10 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
-    @overrides
     def fit_round(
         self, rnd: int
     ) -> Tuple[
-        List[Parameters], List[Dict[str, Scalar]], FitResultsAndFailures
+        Optional[List[Parameters]], List[Dict[str, Scalar]], FitResultsAndFailures
     ]:
         # Get clients and their respective instructions from strategy
         client_instructions = self.strategy.configure_train(
@@ -175,7 +175,7 @@ class PeerReviewServer(Server):
             client_instructions,
             max_workers=self.max_workers,
         )
-        results, failures = self._check_train(results, failures)
+        results, failures = self.check_train(results, failures)
         log(
             DEBUG,
             "train_round received %s results and %s failures",
@@ -227,7 +227,7 @@ class PeerReviewServer(Server):
             review_instructions,
             max_workers=self.max_workers,
         )
-        results, failures = self._check_review(results, failures)
+        results, failures = self.check_review(results, failures)
         log(
             DEBUG,
             "review_round received %s results and %s failures",
@@ -236,7 +236,7 @@ class PeerReviewServer(Server):
         )
 
         # Aggregate review results
-        aggregated_result = self.strategy.aggregate_review(rnd, results, failures)
+        aggregated_result = self.strategy.aggregate_review(rnd, review_rnd, results, failures)
         if aggregated_result is None:
             log(WARNING, "Aggregated result cannot be empty!")
             # TODO Recover!
