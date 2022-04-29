@@ -1,16 +1,15 @@
 from abc import abstractmethod
 from typing import Dict, List, Tuple
-from overrides import overrides
 
 import numpy as np
-from flwr.common import Scalar
 from flwr.client import NumPyClient
+from flwr.common import Scalar
+from overrides import overrides
 
-from .prconfig import *
+from .prconfig import REVIEW_FLAG, REVIEW_SCORE
 
 
 class PeerReviewClient(NumPyClient):
-
     @abstractmethod
     def review(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]
@@ -38,7 +37,7 @@ class PeerReviewClient(NumPyClient):
             bool, bytes, float, int, or str. It can be used to communicate
             arbitrary values back to the server.
         """
-       
+
     @abstractmethod
     def train(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]
@@ -74,10 +73,14 @@ class PeerReviewClient(NumPyClient):
         is_review = config.get(REVIEW_FLAG)
         if is_review:
             parameters, num_examples, loss = self.review(parameters, config)
-            return parameters, num_examples, {
-                REVIEW_FLAG: True,
-                REVIEW_SCORE: float(loss),
-            }
+            return (
+                parameters,
+                num_examples,
+                {
+                    REVIEW_FLAG: True,
+                    REVIEW_SCORE: float(loss),
+                },
+            )
         else:
             parameters, num_examples, metrics = self.train(parameters, config)
             metrics[REVIEW_FLAG] = False

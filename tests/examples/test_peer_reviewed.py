@@ -1,12 +1,11 @@
+import math
 import os
 import re
-import math
 import unittest
 from multiprocessing import Process
 
 from examples.peer_reviewed.client import setup_client
 from examples.peer_reviewed.server import setup_server
-
 
 LOGGING_FILE = "./tests/test_peer_reviewed.log"
 NUM_CLASSES = 10
@@ -31,7 +30,6 @@ def run_fl():
 
 
 class TestPeerReviewedTraining(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_done = False
@@ -47,7 +45,7 @@ class TestPeerReviewedTraining(unittest.TestCase):
             return
         if os.path.exists(LOGGING_FILE):
             os.remove(LOGGING_FILE)
-            
+
         server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
         server.start()
 
@@ -66,19 +64,21 @@ class TestPeerReviewedTraining(unittest.TestCase):
         self.assertTrue(os.path.exists(LOGGING_FILE))
 
     def test_pr_finished(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
-            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)      
+            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)
 
     def test_pr_loss(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "losses_distributed" in line:
                     loss_str = re.search(r"\(.+?\)", line).group(0)
-                    loss_str = loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    loss_str = (
+                        loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    )
                     loss = float(loss_str.split(",")[1])
-                    self.assertLess(loss, -math.log(1/NUM_CLASSES))
+                    self.assertLess(loss, -math.log(1 / NUM_CLASSES))
                     return
         self.assertTrue(False)
 

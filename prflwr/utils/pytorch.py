@@ -1,9 +1,9 @@
 import random
-from typing import List
 from collections import OrderedDict
+from typing import List
 
-import torch
 import numpy as np
+import torch
 
 
 def set_seed(seed):

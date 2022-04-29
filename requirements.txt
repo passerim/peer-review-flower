@@ -1,5 +1,10 @@
 flwr[simulation]==0.18
 torch
 torchvision
+redis
 ipykernel
 overrides
+flake8
+mypy
+isort
+black

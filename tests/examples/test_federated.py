@@ -1,12 +1,11 @@
+import math
 import os
 import re
-import math
 import unittest
 from multiprocessing import Process
 
 from examples.federated.client import setup_client
 from examples.federated.server import setup_server
-
 
 LOGGING_FILE = "./tests/test_federated.log"
 NUM_CLASSES = 10

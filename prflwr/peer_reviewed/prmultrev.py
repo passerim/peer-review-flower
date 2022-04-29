@@ -41,22 +41,22 @@ class MultipleReviewStrategy(Strategy):
         failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         """Aggregate training results.
-        
+
         Parameters
         ----------
         rnd : int
             The current round of federated learning.
         results : List[Tuple[ClientProxy, FitRes]]
             Successful model updates from the previously selected and configured
-            clients. Each pair of `(ClientProxy, FitRes)` constitutes a successful 
-            model update from one of the previously selected clients. Note that not 
-            all previously selected clients are necessarily included in this list: 
-            a client might drop out and not submit a result. For each client that 
+            clients. Each pair of `(ClientProxy, FitRes)` constitutes a successful
+            model update from one of the previously selected clients. Note that not
+            all previously selected clients are necessarily included in this list:
+            a client might drop out and not submit a result. For each client that
             did not submit an update, there should be an `Exception` in `failures`.
         failures : List[BaseException]
             Exceptions that occurred while the server was waiting for client
             updates.
-            
+
         Returns
         -------
         parameters: List[Parameters (optional)]
@@ -71,11 +71,12 @@ class MultipleReviewStrategy(Strategy):
 
     @abstractmethod
     def configure_review(
-        self, 
-        rnd: int, 
-        parameters: Parameters, 
+        self,
+        rnd: int,
+        review_rnd: int,
+        parameters: Parameters,
         client_manager: ClientManager,
-        parameters_aggregated: List[Optional[Parameters]], 
+        parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of peer review.
@@ -91,7 +92,7 @@ class MultipleReviewStrategy(Strategy):
         results : List[Tuple[ClientProxy, FitRes]]
             Successful updates from the previously selected and configured
             clients. Each pair of `(ClientProxy, FitRes)` constitutes a
-            successful trained model update from one of the previously selected clients. 
+            successful trained model update from one of the previously selected clients.
             Note that not all previously selected clients are necessarily included in
             this list: a client might drop out and not submit a result. For each
             client that did not submit an update, there should be an `Exception`
@@ -124,11 +125,11 @@ class MultipleReviewStrategy(Strategy):
         rnd : int
             The current round of federated learning.
         results : List[Tuple[ClientProxy, FitRes]]
-            Successful reviews from the previously selected and configured clients. 
-            Each pair of `(ClientProxy, FitRes)` constitutes a successful review 
-            from one of the previously selected clients. Note that not all previously 
-            selected clients are necessarily included in this list: a client might 
-            drop out and not submit a result. For each client that did not submit 
+            Successful reviews from the previously selected and configured clients.
+            Each pair of `(ClientProxy, FitRes)` constitutes a successful review
+            from one of the previously selected clients. Note that not all previously
+            selected clients are necessarily included in this list: a client might
+            drop out and not submit a result. For each client that did not submit
             an update, there should be an `Exception` in `failures`.
         failures : List[BaseException]
             Exceptions that occurred while the server was waiting for client
@@ -148,7 +149,7 @@ class MultipleReviewStrategy(Strategy):
 
     @abstractmethod
     def aggregate_after_review(
-        self, 
+        self,
         rnd: int,
         review_results: List[Tuple[Optional[Parameters], Dict[str, Scalar]]],
         parameters: Optional[Parameters] = None,
@@ -178,11 +179,11 @@ class MultipleReviewStrategy(Strategy):
 
     @abstractmethod
     def stop_review(
-        self, 
-        rnd: int, 
-        parameters: Parameters, 
+        self,
+        rnd: int,
+        parameters: Parameters,
         client_manager: ClientManager,
-        parameters_aggregated: List[Optional[Parameters]], 
+        parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
         """Stop condition to decide whether or not to continue with another review round.

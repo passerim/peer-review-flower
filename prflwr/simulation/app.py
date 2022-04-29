@@ -2,11 +2,10 @@ from logging import INFO
 from typing import Any, Callable, Dict, Optional
 
 import ray
-
-from flwr.server.server import Server
 from flwr.client.client import Client
 from flwr.common.logger import log
 from flwr.server.app import _fl, _init_defaults
+from flwr.server.server import Server
 from flwr.server.strategy import Strategy
 from flwr.simulation.ray_transport.ray_client_proxy import RayClientProxy
 
@@ -105,5 +104,5 @@ def start_simulation(
         config=initialized_config,
         force_final_distributed_eval=False,
     )
-    
+
     return hist

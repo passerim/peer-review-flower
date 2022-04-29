@@ -5,7 +5,6 @@ import unittest
 from .test_federated import run_fl as tf_run
 from .test_peer_reviewed import run_fl as pr_run
 
-
 LOGGING_FILES = [
     "./tests/test_federated.log",
     "./tests/test_peer_reviewed.log"
@@ -37,9 +36,9 @@ class TestEquivTraining(unittest.TestCase):
 
     def test_logging_file(self):
         self.assertTrue(
-            os.path.exists(LOGGING_FILES[0]) 
-            and 
-            os.path.exists(LOGGING_FILES[1]) 
+            os.path.exists(LOGGING_FILES[0])
+            and
+            os.path.exists(LOGGING_FILES[1])
         )
 
     def test_fl_finished(self):

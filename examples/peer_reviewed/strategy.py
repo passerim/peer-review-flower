@@ -89,34 +89,34 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         return rep
 
     def configure_train(
-        self, 
-        rnd: int, 
-        parameters: Parameters, 
+        self,
+        rnd: int,
+        parameters: Parameters,
         client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         return super().configure_fit(rnd, parameters, client_manager)
-    
+
     def aggregate_train(
-        self, 
-        rnd: int, 
-        results: List[Tuple[ClientProxy, FitRes]], 
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException]
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         return super().aggregate_fit(rnd, results, failures)
 
     def configure_review(
-        self, 
-        rnd: int, 
-        parameters: Parameters, 
+        self,
+        rnd: int,
+        parameters: Parameters,
         client_manager: ClientManager,
-        parameters_aggregated: List[Optional[Parameters]], 
+        parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of review."""
         if not isinstance(parameters_aggregated, list):
             parameters_aggregated = [parameters_aggregated]
         config = {}
-        
+
         # Use custom review config function if provided
         if self.on_review_config_fn is not None:
             config = self.on_review_config_fn(rnd)
@@ -144,8 +144,8 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         while len(idxs) > 0:
             if len(idxs) > int(num_aggregates * self.fraction_review):
                 curr_idxs = np.random.choice(
-                    idxs, 
-                    size=int(num_aggregates * self.fraction_review), 
+                    idxs,
+                    size=int(num_aggregates * self.fraction_review),
                     replace=False
                 )
             else:
@@ -155,8 +155,8 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
                 aggregate, config
             )
             curr_instructions = [
-                (client, review_ins) 
-                for client 
+                (client, review_ins)
+                for client
                 in map(clients.__getitem__, curr_idxs)
             ]
             review_instructions.extend(curr_instructions)
@@ -177,12 +177,12 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             return None
         if not self.accept_failures and failures:
             return None
-        
+
         # Aggregate review round results
         aggregated_result = aggregate(
             [
                 (parameters_to_weights(result.parameters), 1)
-                for client, result 
+                for client, result
                 in results
             ]
         )
@@ -190,7 +190,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         return [aggregated_result], [{}]
 
     def aggregate_after_review(
-        self, 
+        self,
         rnd: int,
         review_results: List[Optional[Parameters]],
         parameters: Optional[Parameters] = None,
@@ -198,19 +198,18 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         aggregated_result = aggregate(
             [
                 (parameters_to_weights(parameters), 1)
-                for parameters 
+                for parameters
                 in review_results
             ]
         )
         return weights_to_parameters(aggregated_result)
 
-
     def stop_review(
-        self, 
-        rnd: int, 
-        parameters: Parameters, 
+        self,
+        rnd: int,
+        parameters: Parameters,
         client_manager: ClientManager,
-        parameters_aggregated: List[Optional[Parameters]], 
+        parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
         """Stop condition to decide whether or not to continue with another review round."""

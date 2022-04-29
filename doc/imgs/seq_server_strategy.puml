@@ -1,0 +1,34 @@
+@startuml sequenza
+PeerReviewedServer -> PeerReviewedStrategy: configure_train(                                                \
+    rnd: int, parameters: Parameters, client_manager: ClientManager                                         \
+)
+PeerReviewedStrategy -> PeerReviewedServer: client_instructions: List[Tuple[ClientProxy, FitIns]]
+PeerReviewedServer -> PeerReviewedStrategy: aggregate_train(                                                \
+    rnd: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]                      \
+)
+PeerReviewedStrategy -> PeerReviewedServer:                                                                 \
+    aggregate_result: List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
+loop do while stop_flag != TRUE
+    PeerReviewedServer -> PeerReviewedStrategy: configure_review(                                           \
+        rnd: int, parameters: Parameters, client_manager: ClientManager,                                    \
+        parameters_aggregated: List[Optional[Parameters]], metrics_aggregated: List[Dict[str, Scalar]]      \
+    )
+    PeerReviewedStrategy -> PeerReviewedServer: review_instructions: List[Tuple[ClientProxy, FitIns]]
+    PeerReviewedServer -> PeerReviewedStrategy: aggregate_review(                                           \
+        rnd: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]                  \
+    )
+    PeerReviewedStrategy -> PeerReviewedServer:                                                             \
+        aggregate_result: List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
+    PeerReviewedServer -> PeerReviewedStrategy: stop_review(                                                \
+        rnd: int,parameters: Parameters, client_manager: ClientManager,                                     \
+        parameters_aggregated: List[Optional[Parameters]], metrics_aggregated: List[Dict[str, Scalar]]      \
+    )
+    PeerReviewedStrategy -> PeerReviewedServer: stop_flag: bool
+end
+PeerReviewedServer -> PeerReviewedStrategy: aggregate_after_review(                                         \
+    rnd: int,                                                                                               \
+    review_results: List[Tuple[Optional[Parameters], Dict[str, Scalar]]],                                   \
+    parameters: Optional[Parameters]                                                                        \
+)
+PeerReviewedStrategy -> PeerReviewedServer: parameters_aggregated: Optional[Parameters]:
+@enduml

@@ -1,6 +1,9 @@
 # Python cache
 *__pycache__*
 
+# VS Code config
+.vscode
+
 # Virtual environments directory
 envs
 .envs
@@ -11,6 +14,9 @@ envs
 # Project specific local directories
 data/*
 out
+
+# mypy cache
+.mypy_cache
 
 # My utility files and directories
 .NOTES

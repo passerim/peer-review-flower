@@ -2,11 +2,10 @@ import math
 import unittest
 
 import torch
+from prflwr.utils.pytorch import set_seed
 from torch.utils.data import DataLoader
 
-from examples.centralized.centralized import load_data, train, test, Net
-from prflwr.utils.pytorch import set_seed
-
+from examples.centralized.centralized import Net, load_data, test, train
 
 SEED = 0
 BATCH_SIZE = 32
@@ -23,7 +22,7 @@ class TestCentralizedTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
-        
+
         # Load model
         set_seed(SEED)
         net = Net().to(DEVICE)
