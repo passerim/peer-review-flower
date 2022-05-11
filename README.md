@@ -4,22 +4,7 @@ Peer reviewed federated learning usign Flower.
 
 ## Installation
 
-Project dependencies (such as `torch` and `flwr`) are defined in `pyproject.toml`. 
-
-We recommend [Poetry](https://python-poetry.org/docs/) to install those dependencies and manage your virtual environment ([Poetry installation](https://python-poetry.org/docs/#installation)).
-
-```shell
-poetry install
-poetry shell
-```
-
-Poetry will install all your dependencies in a newly created virtual environment. To verify that everything works correctly you can run the following command:
-
-```shell
-python3 -c "import flwr"
-```
-
-If you don't see any errors you're good to go!
+Project dependencies are included in the ```requirement.txt``` file, install them using pip or similar tools.
 
 ## Class and sequence diagrams
 
@@ -37,18 +22,23 @@ To run the centralized, federated and federated with peer review training exampl
 
 ## Tests
 
-To run the centralized test:
+To run the centralized test (using only PyTorch):
 ```shell
 python -m tests.test_centralized
 ```
 
-To run the federated test:
+To run the federated test (using PyTorch + Flower):
 ```shell
 python -m tests.test_federated
 ```
 
-To run the peer reviewed federated tests:
+To run the peer reviewed federated tests (using this library):
 ```shell
 python -m tests.test_peer_reviewed
 python -m tests.test_fed_pr_equivalence
+```
+
+To run all tests, including unit tests:
+```shell
+python -m unittest
 ```
