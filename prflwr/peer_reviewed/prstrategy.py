@@ -9,7 +9,9 @@ from .prmultrev import MultipleReviewStrategy
 
 
 class PeerReviewStrategy(MultipleReviewStrategy):
-
+    """Abstract class to extend implementing methods that define a federated
+        learning strategy with support to performing multiple review rounds.
+    """
     @overrides
     def configure_fit(
         self, rnd: int, parameters: Parameters, client_manager: ClientManager

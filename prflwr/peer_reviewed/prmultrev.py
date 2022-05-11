@@ -9,12 +9,11 @@ from flwr.server.strategy import Strategy
 
 class MultipleReviewStrategy(Strategy):
     """Interface for multiple review strategy implementations."""
-
     @abstractmethod
     def configure_train(
         self, rnd: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
-        """Configure the next round of training.
+        """Configure the next round of federated training.
 
         Parameters
         ----------
@@ -27,20 +26,18 @@ class MultipleReviewStrategy(Strategy):
 
         Returns
         -------
-        A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
-        `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
-        is not included in this list, it means that this `ClientProxy`
-        will not participate in the next round of federated learning.
+        List[Tuple[ClientProxy, FitIns]]
+            A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
+            `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
+            is not included in this list, it means that this `ClientProxy` will not
+            participate in the next round of federated learning.
         """
 
     @abstractmethod
     def aggregate_train(
-        self,
-        rnd: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        self, rnd: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
-        """Aggregate training results.
+        """Aggregate training results in the current round of federated learning.
 
         Parameters
         ----------
@@ -59,7 +56,7 @@ class MultipleReviewStrategy(Strategy):
 
         Returns
         -------
-        parameters: List[Parameters (optional)]
+        List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
             If parameters are returned, then the server will treat these as the
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
@@ -79,12 +76,14 @@ class MultipleReviewStrategy(Strategy):
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[ClientProxy, FitIns]]:
-        """Configure the next round of peer review.
+        """Configure the next round of peer review in the current round of federated learning.
 
         Parameters
         ----------
         rnd : int
             The current round of federated learning.
+        review_rnd : int
+            The current review round.
         parameters : Parameters
             The current (global) model parameters.
         client_manager : ClientManager
@@ -103,7 +102,7 @@ class MultipleReviewStrategy(Strategy):
 
         Returns
         -------
-        review_instructions: List[Tuple[ClientProxy, FitIns]]
+        List[Tuple[ClientProxy, FitIns]]
             A list of tuples. Each tuple in the list identifies a `ClientProxy` and the
             `FitIns` for this particular `ClientProxy`. If a particular `ClientProxy`
             is not included in this list, it means that this `ClientProxy`
@@ -125,6 +124,8 @@ class MultipleReviewStrategy(Strategy):
         ----------
         rnd : int
             The current round of federated learning.
+        review_rnd : int
+            The current review round.
         results : List[Tuple[ClientProxy, FitRes]]
             Successful reviews from the previously selected and configured clients.
             Each pair of `(ClientProxy, FitRes)` constitutes a successful review
@@ -138,7 +139,7 @@ class MultipleReviewStrategy(Strategy):
 
         Returns
         -------
-        parameters: List[Parameters (optional)]
+        List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
             If parameters are returned, then the server will treat these as the
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
@@ -162,14 +163,18 @@ class MultipleReviewStrategy(Strategy):
         ----------
         rnd : int
             The current round of federated learning.
-        review_results : List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
-            Successful review results at the end of the previous review rounds.
+        parameters_aggregated: List[Optional[Parameters]]
+            List of model parameters from successful review results at the end
+            of the previous review rounds.
+        metrics_aggregated: List[Dict[str, Scalar]],
+            List of metrics from successful review results at the end
+            of the previous review rounds.
         parameters : Optional[Parameters]
             The current (global) model parameters.
 
         Returns
         -------
-        new_parameters: Parameters (optional)
+        Optional[Parameters]
             If parameters are returned, then the server will treat these as the
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
@@ -195,6 +200,8 @@ class MultipleReviewStrategy(Strategy):
         ----------
         rnd : int
             The current round of federated learning.
+        review_rnd : int
+            The current review round.
         parameters : Parameters
             The current (global) model parameters.
         client_manager : ClientManager
@@ -206,6 +213,6 @@ class MultipleReviewStrategy(Strategy):
 
         Returns
         -------
-        stop: Boolean
+        bool
             Whether the review process should terminate at the current round or not.
         """

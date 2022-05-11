@@ -20,7 +20,7 @@ from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
 
 from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
-from prflwr.peer_reviewed.prconfig import REVIEW_FLAG
+from prflwr.peer_reviewed.prconfig import PrConfig
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
@@ -127,7 +127,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             config = self.on_review_config_fn(rnd)
 
         # Set review flag
-        config.setdefault(REVIEW_FLAG, True)
+        config.setdefault(PrConfig.REVIEW_FLAG, True)
 
         # Sample clients
         sample_size, min_num_clients = self.num_fit_clients(
@@ -138,7 +138,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         )
         if len(parameters_aggregated) > sample_size:
             log(
-                    WARNING, """List of aggregated parameters is longer than 
+                    WARNING, """List of aggregated parameters is longer than
                     the number of clients sampled for the review round."""
                 )
             return None

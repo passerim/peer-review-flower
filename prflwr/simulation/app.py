@@ -46,6 +46,8 @@ def start_simulation(
         An implementation of the abstract base class `flwr.server.Strategy`. If
         no strategy is provided, then `start_server` will use
         `flwr.server.strategy.FedAvg`.
+    server: Optional[Server] (default: flwr.server.server.Server)
+        The server to use for the simulation.
     ray_init_args : Optional[Dict[str, Any]] (default: None)
         Optional dictionary containing arguments for the call to `ray.init`.
         If ray_init_args is None (the default), Ray will be initialized with

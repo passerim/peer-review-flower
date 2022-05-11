@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 from flwr.common.typing import Config, Parameters, Properties, Scalar
 from prflwr.peer_reviewed.prclient import PeerReviewClient
-from prflwr.peer_reviewed.prconfig import REVIEW_FLAG
+from prflwr.peer_reviewed.prconfig import PrConfig
 
 
 class FailingClient(PeerReviewClient):
@@ -76,15 +76,15 @@ class TestPeerReviewClient(unittest.TestCase):
         client = ClientTrain()
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
-        fit_config = {REVIEW_FLAG: False}
+        fit_config = {PrConfig.REVIEW_FLAG: False}
         _, _, train_conf = client.fit(parameters, fit_config)
-        self.assertFalse(train_conf[REVIEW_FLAG])
+        self.assertFalse(train_conf[PrConfig.REVIEW_FLAG])
 
     def test_train_failure(self):
         client = ClientTrain()
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
-        fit_config = {REVIEW_FLAG: False}
+        fit_config = {PrConfig.REVIEW_FLAG: False}
         try:
             client.fit(parameters, fit_config)
         except Exception as e:
@@ -94,15 +94,15 @@ class TestPeerReviewClient(unittest.TestCase):
         client = ClientReview()
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
-        fit_config = {REVIEW_FLAG: True}
+        fit_config = {PrConfig.REVIEW_FLAG: True}
         _, _, train_conf = client.fit(parameters, fit_config)
-        self.assertTrue(train_conf[REVIEW_FLAG])
+        self.assertTrue(train_conf[PrConfig.REVIEW_FLAG])
 
     def test_review_failure(self):
         client = ClientReview()
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         parameters = Parameters(tensors=[arr], tensor_type="")
-        fit_config = {REVIEW_FLAG: False}
+        fit_config = {PrConfig.REVIEW_FLAG: False}
         try:
             client.fit(parameters, fit_config)
         except Exception as e:
