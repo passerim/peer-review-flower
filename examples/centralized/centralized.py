@@ -2,11 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
+from prflwr.utils.pytorch import set_seed
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
-
-from prflwr.utils.pytorch import set_seed
-
 
 SEED = 0
 BATCH_SIZE = 32
@@ -14,7 +12,6 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Net(nn.Module):
-    
     def __init__(self) -> None:
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 6, 5)
@@ -34,7 +31,7 @@ class Net(nn.Module):
         return x
 
 
-def train(net, trainloader, epochs: int, device="cpu",  verbose=False):
+def train(net, trainloader, epochs: int, device="cpu", verbose=False):
     """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -77,7 +74,7 @@ def test(net, testloader, device="cpu"):
 
 def load_data():
     """Load CIFAR-10 (training and test set)."""
-    
+
     # Normalizes pixels value between -1 and +1
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

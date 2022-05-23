@@ -25,7 +25,7 @@ class TestCentralizedTraining(unittest.TestCase):
 
         # Load model
         set_seed(SEED)
-        net = Net().to(DEVICE)
+        net = Net()
 
         # Load data
         trainset, testset, _ = load_data()

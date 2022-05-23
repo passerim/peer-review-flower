@@ -14,11 +14,11 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 #
 setup(
     # This is the name of your project. The first time you publish this
-    # package, this name will be registered for you. It will determine 
+    # package, this name will be registered for you. It will determine
     # how users can install this project, e.g.: pip install sampleproject
     # And where it will live on PyPI: https://pypi.org/project/sampleproject/
     #
-    name="peer_reviewed_flwr",  # Required
+    name="peer-reviewed-flower",  # Required
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
     #
@@ -50,14 +50,15 @@ setup(
     classifiers=[  # Optional
         "Topic :: Software Development :: Libraries",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: System :: Distributed Computing",
         # Specify the Python versions you support here.
         #
-        "Programming Language :: Python :: 3"
+        "Programming Language :: Python :: 3",
     ],
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
-    packages=find_packages(include=['prflwr']),  # Required
+    packages=find_packages(include=["prflwr"]),  # Required
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match.
@@ -71,6 +72,6 @@ setup(
         "flwr[simulation]==0.18",
         "torch==1.11.0",
         "torchvision==0.12.0",
-        "overrides==6.1.0"
+        "overrides==6.1.0",
     ],  # Optional
 )

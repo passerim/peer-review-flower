@@ -91,10 +91,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
 
     @overrides
     def configure_train(
-        self,
-        rnd: int,
-        parameters: Parameters,
-        client_manager: ClientManager
+        self, rnd: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         return super().configure_fit(rnd, parameters, client_manager)
 
@@ -103,7 +100,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         self,
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException]
+        failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         return super().aggregate_fit(rnd, results, failures)
 
@@ -138,9 +135,10 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         )
         if len(parameters_aggregated) > sample_size:
             log(
-                    WARNING, """List of aggregated parameters is longer than
-                    the number of clients sampled for the review round."""
-                )
+                WARNING,
+                """List of aggregated parameters is longer than
+                    the number of clients sampled for the review round.""",
+            )
             return None
         review_instructions = []
         num_aggregates = len(parameters_aggregated)
@@ -149,20 +147,14 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         while len(idxs) > 0:
             if len(idxs) > int(num_aggregates * self.fraction_review):
                 curr_idxs = np.random.choice(
-                    idxs,
-                    size=int(num_aggregates * self.fraction_review),
-                    replace=False
+                    idxs, size=int(num_aggregates * self.fraction_review), replace=False
                 )
             else:
                 curr_idxs = deepcopy(idxs)
             aggregate = parameters_aggregated[curr_agg]
-            review_ins = FitIns(
-                aggregate, config
-            )
+            review_ins = FitIns(aggregate, config)
             curr_instructions = [
-                (client, review_ins)
-                for client
-                in map(clients.__getitem__, curr_idxs)
+                (client, review_ins) for client in map(clients.__getitem__, curr_idxs)
             ]
             review_instructions.extend(curr_instructions)
             for idx in curr_idxs:
@@ -189,8 +181,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         aggregated_result = aggregate(
             [
                 (parameters_to_weights(result.parameters), 1)
-                for client, result
-                in results
+                for client, result in results
             ]
         )
         aggregated_result = weights_to_parameters(aggregated_result)
@@ -207,8 +198,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         aggregated_result = aggregate(
             [
                 (parameters_to_weights(parameters), 1)
-                for parameters
-                in parameters_aggregated
+                for parameters in parameters_aggregated
             ]
         )
         return weights_to_parameters(aggregated_result)

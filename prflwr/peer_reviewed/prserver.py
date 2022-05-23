@@ -15,10 +15,11 @@ from .prstrategy import PeerReviewStrategy
 
 
 class PeerReviewServer(Server):
-    """Implementation of a federated learning server with support for an experimental
-        peer review mechanism of model updates based on trained parameters received by
-        worker-clients and evaluation of theese parameters over multiple review rounds.
+    """Implementation of a federated learning server that supports an experimental
+    peer review mechanism of model updates based on trained parameters received by
+    worker-clients and evaluation of these parameters over multiple review rounds.
     """
+
     def __init__(
         self,
         client_manager: ClientManager,
@@ -81,8 +82,9 @@ class PeerReviewServer(Server):
         log(INFO, "Evaluating initial parameters")
         res = self.strategy.evaluate(parameters=self.parameters)
         if res is not None:
-            log(INFO, "initial parameters (loss, other metrics): %s, %s",
-                res[0], res[1])
+            log(
+                INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1]
+            )
             history.add_loss_centralized(rnd=0, loss=res[0])
             history.add_metrics_centralized(rnd=0, metrics=res[1])
 
@@ -96,17 +98,28 @@ class PeerReviewServer(Server):
             current_round, parameters_aggregated, metrics_aggregated, self.parameters
         )
         if parameters_aggregated is None:
-            log(WARNING, """Aggregated parameters are empty!
-                Skipping this round of federated learning""")
+            log(
+                WARNING,
+                """Aggregated parameters are empty!
+                Skipping this round of federated learning""",
+            )
         else:
             self.parameters = parameters_aggregated
 
-    def evaluate_centralized(self, current_round: int, history: History, timer: FitTimer) -> None:
+    def evaluate_centralized(
+        self, current_round: int, history: History, timer: FitTimer
+    ) -> None:
         res_cen = self.strategy.evaluate(parameters=self.parameters)
         if res_cen is not None:
             loss_cen, metrics_cen = res_cen
-            log(INFO, "fit progress: (%s, %s, %s, %s)",
-                current_round, loss_cen, metrics_cen, timer.get_elapsed())
+            log(
+                INFO,
+                "fit progress: (%s, %s, %s, %s)",
+                current_round,
+                loss_cen,
+                metrics_cen,
+                timer.get_elapsed(),
+            )
             history.add_loss_centralized(rnd=current_round, loss=loss_cen)
             history.add_metrics_centralized(rnd=current_round, metrics=metrics_cen)
 
@@ -120,8 +133,9 @@ class PeerReviewServer(Server):
                     rnd=current_round, metrics=evaluate_metrics_fed
                 )
 
+    @staticmethod
     def check_train(
-        self, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
+        results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
     ):
         for client, result in results:
             if isinstance(result, FitRes):
@@ -131,8 +145,9 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
+    @staticmethod
     def check_review(
-        self, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
+        results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
     ):
         for client, result in results:
             if isinstance(result, FitRes):
@@ -154,8 +169,12 @@ class PeerReviewServer(Server):
         if not client_instructions:
             log(INFO, "train_round: no clients selected, cancel")
             # TODO Recover!
-        log(DEBUG, "train_round: strategy sampled %s clients (out of %s)",
-            len(client_instructions), self._client_manager.num_available())
+        log(
+            DEBUG,
+            "train_round: strategy sampled %s clients (out of %s)",
+            len(client_instructions),
+            self._client_manager.num_available(),
+        )
 
         # Collect training results from all clients participating in this round
         results, failures = fit_clients(
@@ -163,8 +182,12 @@ class PeerReviewServer(Server):
             max_workers=self.max_workers,
         )
         results, failures = self.check_train(results, failures)
-        log(DEBUG, "train_round received %s results and %s failures",
-            len(results), len(failures))
+        log(
+            DEBUG,
+            "train_round received %s results and %s failures",
+            len(results),
+            len(failures),
+        )
 
         # Aggregate training results
         aggregated_result = self.strategy.aggregate_train(rnd, results, failures)
@@ -183,9 +206,7 @@ class PeerReviewServer(Server):
         review_rnd: int,
         parameters_aggregated: List[Parameters],
         metrics_aggregated: List[Dict[str, Scalar]],
-    ) -> Tuple[
-        List[Parameters], List[Dict[str, Scalar]], FitResultsAndFailures
-    ]:
+    ) -> Tuple[List[Parameters], List[Dict[str, Scalar]], FitResultsAndFailures]:
         # Get clients and their respective review instructions from strategy
         review_instructions = self.strategy.configure_review(
             rnd=rnd,
@@ -198,8 +219,12 @@ class PeerReviewServer(Server):
         if not review_instructions:
             log(INFO, "review_round: no clients selected, cancel")
             # TODO Recover!
-        log(DEBUG, "review_round: strategy sampled %s clients (out of %s)",
-            len(review_instructions), self._client_manager.num_available())
+        log(
+            DEBUG,
+            "review_round: strategy sampled %s clients (out of %s)",
+            len(review_instructions),
+            self._client_manager.num_available(),
+        )
 
         # Collect review results from all clients participating in this round.
         results, failures = fit_clients(
@@ -207,11 +232,17 @@ class PeerReviewServer(Server):
             max_workers=self.max_workers,
         )
         results, failures = self.check_review(results, failures)
-        log(DEBUG, "review_round received %s results and %s failures",
-            len(results), len(failures))
+        log(
+            DEBUG,
+            "review_round received %s results and %s failures",
+            len(results),
+            len(failures),
+        )
 
         # Aggregate review results
-        aggregated_result = self.strategy.aggregate_review(rnd, review_rnd, results, failures)
+        aggregated_result = self.strategy.aggregate_review(
+            rnd, review_rnd, results, failures
+        )
         if aggregated_result is None:
             log(WARNING, "Aggregated result cannot be empty!")
             # TODO Recover!

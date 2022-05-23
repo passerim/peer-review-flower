@@ -9,6 +9,7 @@ from flwr.server.strategy import Strategy
 
 class MultipleReviewStrategy(Strategy):
     """Interface for multiple review strategy implementations."""
+
     @abstractmethod
     def configure_train(
         self, rnd: int, parameters: Parameters, client_manager: ClientManager
@@ -35,7 +36,10 @@ class MultipleReviewStrategy(Strategy):
 
     @abstractmethod
     def aggregate_train(
-        self, rnd: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException],
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         """Aggregate training results in the current round of federated learning.
 
@@ -61,7 +65,7 @@ class MultipleReviewStrategy(Strategy):
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
             returned (e.g., because there were only failures and no viable
-            results) then the server will no update the previous model
+            results) then the server will not update the previous model
             parameters, the updates received in this round are discarded, and
             the global model parameters remain the same.
         """
@@ -88,17 +92,12 @@ class MultipleReviewStrategy(Strategy):
             The current (global) model parameters.
         client_manager : ClientManager
             The client manager which holds all currently connected clients.
-        results : List[Tuple[ClientProxy, FitRes]]
-            Successful updates from the previously selected and configured
-            clients. Each pair of `(ClientProxy, FitRes)` constitutes a
-            successful trained model update from one of the previously selected clients.
-            Note that not all previously selected clients are necessarily included in
-            this list: a client might drop out and not submit a result. For each
-            client that did not submit an update, there should be an `Exception`
-            in `failures`.
-        failures : List[BaseException]
-            Exceptions that occurred while the server was waiting for client
-            updates.
+        parameters_aggregated : List[Optional[Parameters]]
+            A list of `Parameters` from the previous round of train or review.
+        metrics_aggregated : List[Dict[str, Scalar]]
+            A list of `Dict` with metrics from the previous round of train
+            or review, corresponding to each `Parameters` in the list
+            `parameters_aggregated`.
 
         Returns
         -------
@@ -144,7 +143,7 @@ class MultipleReviewStrategy(Strategy):
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
             returned (e.g., because there were only failures and no viable
-            results) then the server will no update the previous model
+            results) then the server will not update the previous model
             parameters, the updates received in this round are discarded, and
             the global model parameters remain the same.
         """
@@ -179,7 +178,7 @@ class MultipleReviewStrategy(Strategy):
             new global model parameters (i.e., it will replace the previous
             parameters with the ones returned from this method). If `None` is
             returned (e.g., because there were only failures and no viable
-            results) then the server will no update the previous model
+            results) then the server will not update the previous model
             parameters, the updates received in this round are discarded, and
             the global model parameters remain the same.
         """
@@ -194,7 +193,7 @@ class MultipleReviewStrategy(Strategy):
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
-        """Stop condition to decide whether or not to continue with another review round.
+        """Stop condition to decide whether to continue or not with another review round.
 
         Parameters
         ----------

@@ -2,12 +2,11 @@ import argparse
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
+from prflwr.peer_reviewed.prserver import PeerReviewServer
+from prflwr.utils.pytorch import get_parameters, set_seed
 
 from ..centralized.centralized import Net
-from prflwr.utils.pytorch import set_seed, get_parameters
 from .strategy import PeerReviewedFedAvg
-from prflwr.peer_reviewed.prserver import PeerReviewServer
-
 
 SEED = 0
 
@@ -31,14 +30,14 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
     # Set up logging if a log file is specified
     if logging_file:
         fl.common.logger.configure("server", filename=logging_file)
-    
+
     # Start server
     fl.server.start_server(
         server_address=f"localhost:{port}",
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
-        config={"num_rounds": num_rounds}
+        config={"num_rounds": num_rounds},
     )
 
 

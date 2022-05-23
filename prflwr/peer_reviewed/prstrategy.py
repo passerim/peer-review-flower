@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Dict, List, Optional, Tuple, Union
 
 from flwr.common import FitIns, FitRes, Parameters, Scalar, Weights
@@ -8,10 +9,11 @@ from overrides import overrides
 from .prmultrev import MultipleReviewStrategy
 
 
-class PeerReviewStrategy(MultipleReviewStrategy):
+class PeerReviewStrategy(MultipleReviewStrategy, ABC):
     """Abstract class to extend implementing methods that define a federated
-        learning strategy with support to performing multiple review rounds.
+    learning strategy with support to performing multiple review rounds.
     """
+
     @overrides
     def configure_fit(
         self, rnd: int, parameters: Parameters, client_manager: ClientManager

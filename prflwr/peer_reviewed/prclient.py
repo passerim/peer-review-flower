@@ -13,6 +13,7 @@ class PeerReviewClient(NumPyClient):
     """Abstract class clients should extend implementing missing methods, which provides
     the routing of incoming packets from the server to the train or review methods.
     """
+
     @abstractmethod
     def review(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]

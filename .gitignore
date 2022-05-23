@@ -4,6 +4,9 @@
 # VS Code config
 .vscode
 
+# PyCharm config
+.idea
+
 # Virtual environments directory
 envs
 .envs

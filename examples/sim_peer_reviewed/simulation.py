@@ -25,12 +25,16 @@ def client_fn(cid: str, num_clients: int) -> fl.client.NumPyClient:
 
     # Load model
     net = Net().to(DEVICE)
-    
+
     # Load data
     trainset, testset, _ = load_data()
-    trainset_sampler = DistributedSampler(trainset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED)
-    trainloader = DataLoader(trainset, sampler=trainset_sampler, batch_size=BATCH_SIZE)    
-    testset_sampler = DistributedSampler(testset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED)
+    trainset_sampler = DistributedSampler(
+        trainset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED
+    )
+    trainloader = DataLoader(trainset, sampler=trainset_sampler, batch_size=BATCH_SIZE)
+    testset_sampler = DistributedSampler(
+        testset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED
+    )
     testloader = DataLoader(testset, sampler=testset_sampler, batch_size=BATCH_SIZE)
     return CifarClient(net, trainloader, testloader)
 
@@ -56,15 +60,12 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
 
     # Start simulation
     start_simulation(
-        client_fn=partial(
-            client_fn,
-            num_clients=num_clients
-        ),
+        client_fn=partial(client_fn, num_clients=num_clients),
         num_clients=num_clients,
         num_rounds=num_rounds,
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
-        )
+        ),
     )
 
 
