@@ -8,7 +8,7 @@ from torchvision.datasets import CIFAR10
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 
 class Net(nn.Module):

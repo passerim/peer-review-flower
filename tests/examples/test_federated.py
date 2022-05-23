@@ -30,7 +30,6 @@ def run_fl():
 
 
 class TestFederatedTraining(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_done = False
@@ -53,19 +52,21 @@ class TestFederatedTraining(unittest.TestCase):
         self.assertTrue(os.path.exists(LOGGING_FILE))
 
     def test_fl_finished(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
-            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)      
+            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)
 
     def test_fl_loss(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "losses_distributed" in line:
                     loss_str = re.search(r"\(.+?\)", line).group(0)
-                    loss_str = loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    loss_str = (
+                        loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    )
                     loss = float(loss_str.split(",")[1])
-                    self.assertLess(loss, -math.log(1/NUM_CLASSES))
+                    self.assertLess(loss, -math.log(1 / NUM_CLASSES))
                     return
         self.assertTrue(False)
 

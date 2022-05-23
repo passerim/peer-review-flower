@@ -10,7 +10,7 @@ from ..centralized.centralized import Net, load_data, test, train
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 
 class CifarClient(fl.client.NumPyClient):
