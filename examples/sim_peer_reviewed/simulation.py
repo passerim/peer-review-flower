@@ -17,7 +17,7 @@ from prflwr.simulation.app import start_simulation
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 
 def client_fn(cid: str, num_clients: int) -> fl.client.NumPyClient:
