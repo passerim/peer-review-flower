@@ -2,9 +2,19 @@ import unittest
 
 import numpy as np
 from examples.peer_reviewed.strategy import PeerReviewedFedAvg
-from flwr.common import (Disconnect, EvaluateIns, EvaluateRes, FitIns, FitRes,
-                         Parameters, ParametersRes, PropertiesIns,
-                         PropertiesRes, Reconnect, ndarray_to_bytes)
+from flwr.common import (
+    Disconnect,
+    EvaluateIns,
+    EvaluateRes,
+    FitIns,
+    FitRes,
+    Parameters,
+    ParametersRes,
+    PropertiesIns,
+    PropertiesRes,
+    Reconnect,
+    ndarray_to_bytes,
+)
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
 from prflwr.peer_reviewed.prserver import PeerReviewServer
@@ -13,7 +23,6 @@ from prflwr.simulation.app import start_simulation
 
 
 class NamedSimulationClient(ClientProxy):
-
     def __init__(self, cid: str):
         super().__init__(cid)
         arr = np.array([[1, 2], [3, 4], [5, 6]])
@@ -39,11 +48,10 @@ class NamedSimulationClient(ClientProxy):
         raise Exception
 
 
-class TestCentralizedTraining(unittest.TestCase):
-
+class TestSimulationWithPrServer(unittest.TestCase):
     def test_server_is_peer_reviewed(self):
 
-        # Define strategy and assert it is a sublass of PeerReviewStrategy
+        # Define strategy and assert it is a subclass of PeerReviewStrategy
         strategy = PeerReviewedFedAvg(
             fraction_review=1.0,
             fraction_fit=1.0,
@@ -66,7 +74,7 @@ class TestCentralizedTraining(unittest.TestCase):
             num_clients=1,
             num_rounds=0,
             strategy=strategy,
-            server=server
+            server=server,
         )
         self.assertIsNotNone(hist)
 

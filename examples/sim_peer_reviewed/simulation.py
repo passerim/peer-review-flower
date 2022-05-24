@@ -3,7 +3,6 @@ from functools import partial
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
-import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -59,7 +58,7 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
         fl.common.logger.configure("server", filename=logging_file)
 
     # Start simulation
-    start_simulation(
+    hist = start_simulation(
         client_fn=partial(client_fn, num_clients=num_clients),
         num_clients=num_clients,
         num_rounds=num_rounds,
@@ -67,6 +66,7 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
             client_manager=SimpleClientManager(), strategy=strategy
         ),
     )
+    return hist
 
 
 def main():
