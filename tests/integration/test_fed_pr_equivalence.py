@@ -26,9 +26,9 @@ class TestEquivTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
+        self.setup_done = True
         tf_run()
         pr_run()
-        self.setup_done = True
 
     def test_logging_file(self):
         self.assertTrue(

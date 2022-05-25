@@ -3,6 +3,7 @@
 Peer reviewed federated learning usign Flower.
 
 [![prflwr](https://github.com/passerim/peer-reviewed-flower/actions/workflows/prflwr.yml/badge.svg)](https://github.com/passerim/peer-reviewed-flower/actions/workflows/prflwr.yml)
+[![prflwr](https://github.com/passerim/peer-reviewed-flower/actions/workflows/install.yml/badge.svg)](https://github.com/passerim/peer-reviewed-flower/actions/workflows/install.yml)
 
 ## Installation
 

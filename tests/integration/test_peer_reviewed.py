@@ -12,7 +12,7 @@ TRAIN_TEST_FRACTION = 0.1
 NUM_CLASSES = 10
 NUM_CLIENTS = 2
 FL_ROUNDS = 1
-PORT = 8090
+PORT = 8089
 
 
 def run_fl():
@@ -21,13 +21,15 @@ def run_fl():
 
     clients = list()
     for i in range(NUM_CLIENTS):
-        c = Process(target=setup_client, args=(PORT, NUM_CLIENTS, i, TRAIN_TEST_FRACTION))
+        c = Process(
+            target=setup_client, args=(PORT, NUM_CLIENTS, i, TRAIN_TEST_FRACTION)
+        )
         c.start()
         clients.append(c)
 
+    server.join()
     for c in clients:
         c.join()
-    server.join()
 
 
 class TestPeerReviewedTraining(unittest.TestCase):
@@ -44,22 +46,10 @@ class TestPeerReviewedTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
+        self.setup_done = True
         if os.path.exists(LOGGING_FILE):
             os.remove(LOGGING_FILE)
-
-        server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
-        server.start()
-
-        clients = list()
-        for i in range(NUM_CLIENTS):
-            c = Process(target=setup_client, args=(PORT, NUM_CLIENTS, i))
-            c.start()
-            clients.append(c)
-
-        for c in clients:
-            c.join()
-        server.join()
-        self.setup_done = True
+        run_fl()
 
     def test_logging_file(self):
         self.assertTrue(os.path.exists(LOGGING_FILE))

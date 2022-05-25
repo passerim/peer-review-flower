@@ -21,10 +21,11 @@ class TestCentralizedTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
+        self.setup_done = True
 
         # Load model
         set_seed(SEED)
-        net = Net()
+        net = Net().to(DEVICE)
 
         # Load data
         trainset, testset, _ = load_data()
@@ -48,7 +49,6 @@ class TestCentralizedTraining(unittest.TestCase):
         self.loss_after_epoch, self.accuracy_after_epoch = test(
             net, testloader, device=DEVICE
         )
-        self.setup_done = True
 
     def test_loss_start(self):
         self.assertAlmostEqual(self.loss_start, -math.log(1 / self.num_classes), 1)

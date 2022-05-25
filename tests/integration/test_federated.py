@@ -27,9 +27,9 @@ def run_fl():
         c.start()
         clients.append(c)
 
+    server.join()
     for c in clients:
         c.join()
-    server.join()
 
 
 class TestFederatedTraining(unittest.TestCase):
