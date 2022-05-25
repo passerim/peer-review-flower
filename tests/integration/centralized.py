@@ -1,19 +1,18 @@
 import math
 import unittest
 
-import torch
 from prflwr.utils.pytorch import set_seed
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from examples.centralized.centralized import Net, load_data, test, train
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+TRAIN_TEST_FRACTION = 0.1
+DEVICE = "cpu"
 
 
 class TestCentralizedTraining(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_done = False
@@ -22,14 +21,21 @@ class TestCentralizedTraining(unittest.TestCase):
     def setUp(self) -> None:
         if self.setup_done:
             return
+        self.setup_done = True
 
         # Load model
         set_seed(SEED)
-        net = Net()
+        net = Net().to(DEVICE)
 
         # Load data
         trainset, testset, _ = load_data()
         self.num_classes = len(trainset.classes)
+        trainset = Subset(
+            trainset, list(range(int(TRAIN_TEST_FRACTION * trainset.data.shape[0])))
+        )
+        testset = Subset(
+            testset, list(range(int(TRAIN_TEST_FRACTION * testset.data.shape[0])))
+        )
         trainloader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True)
         testloader = DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False)
 
@@ -40,20 +46,21 @@ class TestCentralizedTraining(unittest.TestCase):
         train(net, trainloader, epochs=1, device=DEVICE, verbose=True)
 
         # Check metrics after training
-        self.loss_after_epoch, self.accuracy_after_epoch = test(net, testloader, device=DEVICE)
-        self.setup_done = True
+        self.loss_after_epoch, self.accuracy_after_epoch = test(
+            net, testloader, device=DEVICE
+        )
 
     def test_loss_start(self):
-        self.assertAlmostEqual(self.loss_start, -math.log(1/self.num_classes), 1)
+        self.assertAlmostEqual(self.loss_start, -math.log(1 / self.num_classes), 1)
 
     def test_accuracy_start(self):
-        self.assertAlmostEqual(self.accuracy_start, 1/self.num_classes, 1)
+        self.assertAlmostEqual(self.accuracy_start, 1 / self.num_classes, 1)
 
     def test_loss_after_epoch(self):
-        self.assertLess(self.loss_after_epoch, -math.log(1/self.num_classes))
+        self.assertLess(self.loss_after_epoch, -math.log(1 / self.num_classes))
 
     def test_accuracy_after_epoch(self):
-        self.assertGreater(self.accuracy_after_epoch, 1/self.num_classes)
+        self.assertGreater(self.accuracy_after_epoch, 1 / self.num_classes)
 
 
 if __name__ == "__main__":

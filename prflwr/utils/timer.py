@@ -2,6 +2,8 @@ import timeit
 
 
 class FitTimer:
+    """A simple timer to measure time taken fitting a model."""
+
     def __init__(self, init_offset: float = 0.0):
         self._elapsed = 0.0 + init_offset
         self._on = False

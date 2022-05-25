@@ -8,6 +8,7 @@ from examples.federated.client import setup_client
 from examples.federated.server import setup_server
 
 LOGGING_FILE = "./tests/test_federated.log"
+TRAIN_TEST_FRACTION = 0.1
 NUM_CLASSES = 10
 NUM_CLIENTS = 2
 FL_ROUNDS = 1
@@ -20,17 +21,18 @@ def run_fl():
 
     clients = list()
     for i in range(NUM_CLIENTS):
-        c = Process(target=setup_client, args=(PORT, NUM_CLIENTS, i))
+        c = Process(
+            target=setup_client, args=(PORT, NUM_CLIENTS, i, TRAIN_TEST_FRACTION)
+        )
         c.start()
         clients.append(c)
 
+    server.join()
     for c in clients:
         c.join()
-    server.join()
 
 
 class TestFederatedTraining(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_done = False
@@ -53,19 +55,21 @@ class TestFederatedTraining(unittest.TestCase):
         self.assertTrue(os.path.exists(LOGGING_FILE))
 
     def test_fl_finished(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
-            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)      
+            self.assertGreater(sum([1 for line in lines if "FL finished" in line]), 0)
 
     def test_fl_loss(self):
-        with open(LOGGING_FILE, 'r') as f:
+        with open(LOGGING_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "losses_distributed" in line:
                     loss_str = re.search(r"\(.+?\)", line).group(0)
-                    loss_str = loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    loss_str = (
+                        loss_str.replace("(", "").replace(")", "").replace(" ", "")
+                    )
                     loss = float(loss_str.split(",")[1])
-                    self.assertLess(loss, -math.log(1/NUM_CLASSES))
+                    self.assertLess(loss, -math.log(1 / NUM_CLASSES))
                     return
         self.assertTrue(False)
 

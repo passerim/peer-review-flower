@@ -3,7 +3,6 @@ from functools import partial
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
-import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -17,7 +16,7 @@ from prflwr.simulation.app import start_simulation
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 
 def client_fn(cid: str, num_clients: int) -> fl.client.NumPyClient:
@@ -59,7 +58,7 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
         fl.common.logger.configure("server", filename=logging_file)
 
     # Start simulation
-    start_simulation(
+    hist = start_simulation(
         client_fn=partial(client_fn, num_clients=num_clients),
         num_clients=num_clients,
         num_rounds=num_rounds,
@@ -67,6 +66,7 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
             client_manager=SimpleClientManager(), strategy=strategy
         ),
     )
+    return hist
 
 
 def main():

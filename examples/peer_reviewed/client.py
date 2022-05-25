@@ -1,18 +1,17 @@
 import argparse
 
 import flwr as fl
-import torch
 from prflwr.peer_reviewed.prclient import PeerReviewClient
 from prflwr.utils.pytorch import get_parameters, set_parameters, set_seed
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
 
 from ..centralized.centralized import Net, load_data, test, train
 
 SEED = 0
 BATCH_SIZE = 32
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 
 class CifarClient(PeerReviewClient):
@@ -45,7 +44,9 @@ class CifarClient(PeerReviewClient):
         return float(loss), len(self.testloader.dataset), {"accuracy": float(accuracy)}
 
 
-def setup_client(port: int, num_clients: int, partition: int):
+def setup_client(
+    port: int, num_clients: int, partition: int, train_test_fraction: float = 1.0
+):
     set_seed(SEED)
 
     # Load model
@@ -53,6 +54,12 @@ def setup_client(port: int, num_clients: int, partition: int):
 
     # Load data
     trainset, testset, _ = load_data()
+    trainset = Subset(
+        trainset, list(range(int(train_test_fraction * trainset.data.shape[0])))
+    )
+    testset = Subset(
+        testset, list(range(int(train_test_fraction * testset.data.shape[0])))
+    )
     trainset_sampler = DistributedSampler(
         trainset, num_replicas=num_clients, rank=partition, shuffle=True, seed=SEED
     )
