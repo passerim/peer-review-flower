@@ -58,8 +58,7 @@ setup(
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
-    package_dir={"": "prflwr"},
-    packages=find_packages(where="prflwr"),  # Required
+    packages=find_packages(where="prflwr", include=["prflwr"]),  # Required
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match.
