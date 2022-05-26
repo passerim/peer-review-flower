@@ -17,6 +17,7 @@ envs
 # Project specific local directories
 data/*
 out
+notebooks
 
 # mypy cache
 *.mypy_cache
