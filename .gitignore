@@ -9,7 +9,6 @@
 
 # Virtual environments directory
 envs
-.envs
 
 # Temp and log files
 *.log
@@ -17,6 +16,7 @@ envs
 # Project specific local directories
 data/*
 out
+notebooks
 
 # mypy cache
 *.mypy_cache

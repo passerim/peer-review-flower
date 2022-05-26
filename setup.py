@@ -69,9 +69,9 @@ setup(
     # installed, so they must be valid existing projects.
     #
     install_requires=[
-        "flwr[simulation]==0.18",
-        "torch==1.11.0",
-        "torchvision==0.12.0",
-        "overrides==6.1.0",
+        "flwr[simulation]==0.19",
+        "torch",
+        "torchvision",
+        "overrides",
     ],  # Optional
 )
