@@ -36,17 +36,19 @@ class PeerReviewServer(Server):
         self.set_max_workers(max_workers)
 
     @overrides
-    def fit(self, num_rounds: int) -> History:
+    def fit(self, num_rounds: int, timeout: Optional[float]) -> History:
         """Run federated learning with peer review for a number of rounds."""
         history = History()
         # Initialize parameters
-        self.init_parameters(history)
+        self.init_parameters(history, timeout)
         # Run federated learning for num_rounds rounds
         log(INFO, "FL starting")
         timer = FitTimer()
         for current_round in range(1, num_rounds + 1):
             # Train model on clients and replace previous global model
-            parameters_aggregated, metrics_aggregated, _ = self.fit_round(current_round)
+            parameters_aggregated, metrics_aggregated, _ = self.fit_round(
+                current_round, timeout
+            )
             # Multiple reviews loop
             for current_review in range(self.max_review_rounds):
                 parameters_aggregated, metrics_aggregated, _ = self.review_round(
@@ -54,6 +56,7 @@ class PeerReviewServer(Server):
                     review_rnd=current_review,
                     parameters_aggregated=parameters_aggregated,
                     metrics_aggregated=metrics_aggregated,
+                    timeout=timeout,
                 )
                 if self.strategy.stop_review(
                     current_round,
@@ -71,14 +74,14 @@ class PeerReviewServer(Server):
             # Evaluate model using strategy implementation
             self.evaluate_centralized(current_round, history, timer)
             # Evaluate model on a sample of available clients
-            self.evaluate_on_clients(current_round, history)
+            self.evaluate_on_clients(current_round, history, timeout)
         # Bookkeeping
         log(INFO, "FL finished in %s", timer.get_elapsed())
         return history
 
-    def init_parameters(self, history: History) -> None:
+    def init_parameters(self, history: History, timeout: Optional[float]) -> None:
         log(INFO, "Initializing global parameters")
-        self.parameters = self._get_initial_parameters()
+        self.parameters = self._get_initial_parameters(timeout=timeout)
         log(INFO, "Evaluating initial parameters")
         res = self.strategy.evaluate(parameters=self.parameters)
         if res is not None:
@@ -123,8 +126,10 @@ class PeerReviewServer(Server):
             history.add_loss_centralized(rnd=current_round, loss=loss_cen)
             history.add_metrics_centralized(rnd=current_round, metrics=metrics_cen)
 
-    def evaluate_on_clients(self, current_round: int, history: History) -> None:
-        res_fed = self.evaluate_round(rnd=current_round)
+    def evaluate_on_clients(
+        self, current_round: int, history: History, timeout: Optional[float]
+    ) -> None:
+        res_fed = self.evaluate_round(rnd=current_round, timeout=timeout)
         if res_fed:
             loss_fed, evaluate_metrics_fed, _ = res_fed
             if loss_fed:
@@ -158,7 +163,7 @@ class PeerReviewServer(Server):
         return results, failures
 
     def fit_round(
-        self, rnd: int
+        self, rnd: int, timeout: Optional[float]
     ) -> Tuple[
         Optional[List[Parameters]], List[Dict[str, Scalar]], FitResultsAndFailures
     ]:
@@ -180,6 +185,7 @@ class PeerReviewServer(Server):
         results, failures = fit_clients(
             client_instructions,
             max_workers=self.max_workers,
+            timeout=timeout,
         )
         results, failures = self.check_train(results, failures)
         log(
@@ -206,6 +212,7 @@ class PeerReviewServer(Server):
         review_rnd: int,
         parameters_aggregated: List[Parameters],
         metrics_aggregated: List[Dict[str, Scalar]],
+        timeout: Optional[float],
     ) -> Tuple[List[Parameters], List[Dict[str, Scalar]], FitResultsAndFailures]:
         # Get clients and their respective review instructions from strategy
         review_instructions = self.strategy.configure_review(
@@ -230,6 +237,7 @@ class PeerReviewServer(Server):
         results, failures = fit_clients(
             review_instructions,
             max_workers=self.max_workers,
+            timeout=timeout,
         )
         results, failures = self.check_review(results, failures)
         log(

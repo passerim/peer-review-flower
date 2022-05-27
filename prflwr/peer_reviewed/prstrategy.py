@@ -1,7 +1,7 @@
 from abc import ABC
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
-from flwr.common import FitIns, FitRes, Parameters, Scalar, Weights
+from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
@@ -26,5 +26,5 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
-    ) -> Union[Tuple[Optional[Parameters], Dict[str, Scalar]], Optional[Weights]]:
+    ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         return self.aggregate_train(rnd, results, failures).pop()

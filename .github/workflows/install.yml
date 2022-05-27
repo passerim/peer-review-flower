@@ -36,3 +36,6 @@ jobs:
     - name: Test installation
       run: |
         [ $(python -m pip list | grep peer-reviewed-flower | wc -l) -eq 1 ]
+    - name: Test import
+      run: |
+        python -c "import prflwr.peer_reviewed.prconfig"
