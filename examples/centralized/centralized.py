@@ -42,7 +42,7 @@ def train(net, trainloader, epochs: int, device="cpu", verbose=False):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(images)
-            loss = criterion(net(images), labels)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
             epoch_loss += loss
