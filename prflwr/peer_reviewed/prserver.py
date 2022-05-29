@@ -43,7 +43,7 @@ class PeerReviewServer(Server):
         self.init_parameters(history, timeout)
         # Run federated learning for num_rounds rounds
         log(INFO, "FL starting")
-        timer = FitTimer()
+        timer = FitTimer().start()
         for current_round in range(1, num_rounds + 1):
             # Train model on clients and replace previous global model
             parameters_aggregated, metrics_aggregated, _ = self.fit_round(

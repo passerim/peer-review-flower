@@ -1,4 +1,4 @@
-flwr[simulation]
+flwr[simulation]==0.19
 torch
 torchvision
 overrides
@@ -8,4 +8,3 @@ flake8
 mypy
 isort
 black
-matplotlib

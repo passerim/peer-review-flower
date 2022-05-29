@@ -13,10 +13,11 @@ envs
 # Temp and log files
 *.log
 
-# Project specific local directories
+# Project specific directories
 data/*
 out
 notebooks
+experiments/fedes/data
 
 # mypy cache
 *.mypy_cache
