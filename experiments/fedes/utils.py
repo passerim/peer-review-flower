@@ -1,10 +1,21 @@
 import os
+import random
 import time
 
+import numpy as np
 import torch
 import torchvision.transforms as transforms
+from torch.optim import SGD
+from torch.utils.data import DataLoader
 from torchvision import datasets
 from tqdm import tqdm
+
+
+def seed_all(seed: int = 0):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 def load_data(src_path: str = ".", dataset: str = "CIFAR100"):
@@ -34,6 +45,26 @@ def load_data(src_path: str = ".", dataset: str = "CIFAR100"):
         transform=transform_test,
     )
     return trainset, testset
+
+
+def create_iterator(dataset, shuffle, opt):
+    return DataLoader(
+        dataset,
+        opt.batch_size,
+        shuffle=shuffle,
+        num_workers=opt.nthread,
+        pin_memory=opt.cuda,
+    )
+
+
+def create_optimizer(model, opt):
+    print("creating optimizer with lr = ", opt.lr)
+    return SGD(
+        model.parameters(),
+        opt.lr,
+        momentum=0.9,
+        weight_decay=opt.weight_decay,
+    )
 
 
 class Timer:

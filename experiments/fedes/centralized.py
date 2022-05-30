@@ -1,23 +1,29 @@
 import argparse
 import json
 import os
-import random
 import time
 
-import numpy as np
 import torch
 import torch.utils.data
 from torch import nn
 from torch.backends import cudnn
-from torch.optim import SGD
-from torch.utils.data import DataLoader
 
 from resnet import WideResNet
-from utils import load_data, print_tensor_dict, test, train
+from utils import (
+    load_data,
+    print_tensor_dict,
+    test,
+    train,
+    seed_all,
+    create_iterator,
+    create_optimizer
+)
 
 cudnn.benchmark = True
 
-parser = argparse.ArgumentParser(description="Wide Residual Networks")
+parser = argparse.ArgumentParser(
+    description="Training a Wide Residual Network on CIFAR-10 and CIFAR-100 datasets."
+)
 # Model options
 parser.add_argument("--model", default="resnet", type=str)
 parser.add_argument("--depth", default=16, type=int)
@@ -25,7 +31,6 @@ parser.add_argument("--width", default=4, type=float)
 parser.add_argument("--dataset", default="CIFAR100", type=str)
 parser.add_argument("--dataroot", default=".", type=str)
 parser.add_argument("--dtype", default="float", type=str)
-parser.add_argument("--groups", default=1, type=int)
 parser.add_argument("--nthread", default=1, type=int)
 parser.add_argument("--seed", default=1, type=int)
 # Training options
@@ -51,33 +56,6 @@ parser.add_argument(
     type=str,
     help="save parameters and logs in this folder",
 )
-
-
-def seed_all(seed: int = 0):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-
-def create_iterator(dataset, shuffle, opt):
-    return DataLoader(
-        dataset,
-        opt.batch_size,
-        shuffle=shuffle,
-        num_workers=opt.nthread,
-        pin_memory=opt.cuda,
-    )
-
-
-def create_optimizer(model, opt):
-    print("creating optimizer with lr = ", opt.lr)
-    return SGD(
-        model.parameters(),
-        opt.lr,
-        momentum=0.9,
-        weight_decay=opt.weight_decay,
-    )
 
 
 def log(model, epoch, optimizer, metrics, opt):
