@@ -2,6 +2,7 @@ import argparse
 
 import flwr as fl
 from prflwr.peer_reviewed.prclient import PeerReviewClient
+from prflwr.peer_reviewed.prconfig import PrConfig
 from prflwr.utils.pytorch import get_parameters, set_parameters, set_seed
 from torch import nn
 from torch.utils.data import DataLoader, Subset
@@ -36,7 +37,11 @@ class CifarClient(PeerReviewClient):
     def review(self, parameters, config):
         set_parameters(self.model, parameters)
         loss, _ = test(self.model, self.testloader, device=DEVICE)
-        return get_parameters(self.model), len(self.testloader.dataset), float(loss)
+        return (
+            get_parameters(self.model),
+            len(self.testloader.dataset),
+            {PrConfig.REVIEW_SCORE: float(loss)},
+        )
 
     def evaluate(self, parameters, config):
         set_parameters(self.model, parameters)

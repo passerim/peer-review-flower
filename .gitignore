@@ -25,3 +25,4 @@ experiments/fedes/data
 # My utility files and directories
 .NOTES
 doc/*.md
+*__copy__*

@@ -1,12 +1,14 @@
-from logging import DEBUG, INFO, WARNING
+from logging import DEBUG, ERROR, INFO, WARNING
 from typing import Dict, List, Optional, Tuple
 
 from flwr.common import FitRes, Parameters, Scalar
 from flwr.common.logger import log
+from flwr.common.parameter import weights_to_parameters
+from flwr.common.typing import FitIns, Weights
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
-from flwr.server.server import FitResultsAndFailures, Server, fit_clients
+from flwr.server.server import Server, fit_clients
 from overrides import overrides
 
 from ..utils.timer import FitTimer
@@ -46,19 +48,20 @@ class PeerReviewServer(Server):
         timer = FitTimer().start()
         for current_round in range(1, num_rounds + 1):
             # Train model on clients and replace previous global model
-            parameters_aggregated, metrics_aggregated, _ = self.fit_round(
+            parameters_aggregated, metrics_aggregated = self.fit_round(
                 current_round, timeout
             )
             # Multiple reviews loop
-            for current_review in range(self.max_review_rounds):
-                parameters_aggregated, metrics_aggregated, _ = self.review_round(
-                    rnd=current_round,
-                    review_rnd=current_review,
-                    parameters_aggregated=parameters_aggregated,
-                    metrics_aggregated=metrics_aggregated,
-                    timeout=timeout,
-                )
-                if self.strategy.stop_review(
+            for current_review in range(1, self.max_review_rounds + 1):
+                if parameters_aggregated:
+                    parameters_aggregated, metrics_aggregated = self.review_round(
+                        rnd=current_round,
+                        review_rnd=current_review,
+                        parameters_aggregated=parameters_aggregated,
+                        metrics_aggregated=metrics_aggregated,
+                        timeout=timeout,
+                    )
+                if parameters_aggregated is not None and self.strategy.stop_review(
                     current_round,
                     current_review,
                     self.parameters,
@@ -96,18 +99,29 @@ class PeerReviewServer(Server):
         current_round: int,
         parameters_aggregated: List[Parameters],
         metrics_aggregated: List[Dict[str, Scalar]],
-    ) -> None:
-        parameters_aggregated = self.strategy.aggregate_after_review(
+    ) -> bool:
+        parameters_prime = self.strategy.aggregate_after_review(
             current_round, parameters_aggregated, metrics_aggregated, self.parameters
         )
-        if parameters_aggregated is None:
+        if parameters_prime is None:
             log(
                 WARNING,
                 """Aggregated parameters are empty!
                 Skipping this round of federated learning""",
             )
-        else:
-            self.parameters = parameters_aggregated
+            return False
+        elif type(parameters_prime) == Weights:
+            parameters_prime = weights_to_parameters(parameters_prime)
+        elif type(parameters_prime) != Parameters:
+            log(
+                ERROR,
+                """Aggregated parameters type is incorrect!
+                Skipping this round of federated learning""",
+            )
+            return False
+        log(DEBUG, "updated")
+        self.parameters = parameters_prime
+        return True
 
     def evaluate_centralized(
         self, current_round: int, history: History, timer: FitTimer
@@ -164,23 +178,20 @@ class PeerReviewServer(Server):
 
     def fit_round(
         self, rnd: int, timeout: Optional[float]
-    ) -> Tuple[
-        Optional[List[Parameters]], List[Dict[str, Scalar]], FitResultsAndFailures
-    ]:
+    ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
         # Get clients and their respective instructions from strategy
         client_instructions = self.strategy.configure_train(
             rnd=rnd, parameters=self.parameters, client_manager=self._client_manager
         )
-        if not client_instructions:
+        if not client_instructions or len(client_instructions) < 1:
             log(INFO, "train_round: no clients selected, cancel")
-            # TODO Recover!
+            return None, {}
         log(
             DEBUG,
             "train_round: strategy sampled %s clients (out of %s)",
             len(client_instructions),
             self._client_manager.num_available(),
         )
-
         # Collect training results from all clients participating in this round
         results, failures = fit_clients(
             client_instructions,
@@ -194,17 +205,27 @@ class PeerReviewServer(Server):
             len(results),
             len(failures),
         )
-
         # Aggregate training results
         aggregated_result = self.strategy.aggregate_train(rnd, results, failures)
         metrics_aggregated = {}
-        if aggregated_result is None:
+        if aggregated_result is None or len(aggregated_result) < 1:
             log(WARNING, "Aggregated result cannot be empty!")
-            # TODO Recover!
+            return None, {}
         else:
-            parameters_aggregated, metrics_aggregated = aggregated_result
+            parameters_aggregated = [res[0] for res in aggregated_result]
+            metrics_aggregated = [res[1] for res in aggregated_result]
+        return parameters_aggregated, metrics_aggregated
 
-        return parameters_aggregated, metrics_aggregated, (results, failures)
+    @staticmethod
+    def add_review_flag_if_missing(
+        review_instructions: List[Tuple[ClientProxy, FitIns]]
+    ):
+        def add_flag(fit_ins: FitIns):
+            assert isinstance(fit_ins, FitIns)
+            fit_ins.config.setdefault(PrConfig.REVIEW_FLAG, True)
+            return fit_ins
+
+        return list(map(lambda ins: (ins[0], add_flag(ins[1])), review_instructions))
 
     def review_round(
         self,
@@ -213,7 +234,7 @@ class PeerReviewServer(Server):
         parameters_aggregated: List[Parameters],
         metrics_aggregated: List[Dict[str, Scalar]],
         timeout: Optional[float],
-    ) -> Tuple[List[Parameters], List[Dict[str, Scalar]], FitResultsAndFailures]:
+    ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
         # Get clients and their respective review instructions from strategy
         review_instructions = self.strategy.configure_review(
             rnd=rnd,
@@ -223,16 +244,16 @@ class PeerReviewServer(Server):
             parameters_aggregated=parameters_aggregated,
             metrics_aggregated=metrics_aggregated,
         )
-        if not review_instructions:
+        review_instructions = self.add_review_flag_if_missing(review_instructions)
+        if not review_instructions or len(review_instructions) < 1:
             log(INFO, "review_round: no clients selected, cancel")
-            # TODO Recover!
+            return None, {}
         log(
             DEBUG,
             "review_round: strategy sampled %s clients (out of %s)",
             len(review_instructions),
             self._client_manager.num_available(),
         )
-
         # Collect review results from all clients participating in this round.
         results, failures = fit_clients(
             review_instructions,
@@ -246,15 +267,14 @@ class PeerReviewServer(Server):
             len(results),
             len(failures),
         )
-
         # Aggregate review results
         aggregated_result = self.strategy.aggregate_review(
             rnd, review_rnd, results, failures
         )
-        if aggregated_result is None:
+        if aggregated_result is None or len(aggregated_result) < 1:
             log(WARNING, "Aggregated result cannot be empty!")
-            # TODO Recover!
+            return None, {}
         else:
-            parameters_aggregated, metrics_aggregated = aggregated_result
-
-        return parameters_aggregated, metrics_aggregated, (results, failures)
+            parameters_aggregated = [res[0] for res in aggregated_result]
+            metrics_aggregated = [res[1] for res in aggregated_result]
+        return parameters_aggregated, metrics_aggregated

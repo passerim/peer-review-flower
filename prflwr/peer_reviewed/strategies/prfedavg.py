@@ -19,8 +19,8 @@ from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
 
-from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
-from prflwr.peer_reviewed.prconfig import PrConfig
+from ..prconfig import PrConfig
+from ..prstrategy import PeerReviewStrategy
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
@@ -102,7 +102,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
-        return super().aggregate_fit(rnd, results, failures)
+        return [super().aggregate_fit(rnd, results, failures)]
 
     @overrides
     def configure_review(
@@ -173,9 +173,9 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         # Do not aggregate if there are no results or
         # if there are failures and failures are not accepted
         if not results:
-            return None
+            return []
         if not self.accept_failures and failures:
-            return None
+            return []
 
         # Aggregate review round results
         aggregated_result = aggregate(
@@ -185,7 +185,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             ]
         )
         aggregated_result = weights_to_parameters(aggregated_result)
-        return [aggregated_result], [{}]
+        return [(aggregated_result, {})]
 
     @overrides
     def aggregate_after_review(
