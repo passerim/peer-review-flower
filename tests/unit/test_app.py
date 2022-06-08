@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from examples.peer_reviewed.strategy import PeerReviewedFedAvg
+from prflwr.peer_reviewed.strategies.prfedavg import PeerReviewedFedAvg
 from flwr.common import (
     Disconnect,
     EvaluateIns,
@@ -63,8 +63,9 @@ class TestSimulationWithPrServer(unittest.TestCase):
         self.assertIsInstance(strategy, PeerReviewStrategy)
 
         # Define server and assert it is a sublass of PeerReviewServer
+        client_manager = SimpleClientManager()
         server = PeerReviewServer(
-            client_manager=SimpleClientManager(), strategy=strategy
+            client_manager=client_manager, strategy=strategy
         )
         self.assertIsInstance(server, PeerReviewServer)
 
@@ -75,6 +76,9 @@ class TestSimulationWithPrServer(unittest.TestCase):
             num_rounds=0,
             strategy=strategy,
             server=server,
+            client_manager=client_manager,
+            client_resources={"num_cpus": 1, "num_gpus": 0},
+            ray_init_args={"local_mode": True, "include_dashboard": False},
         )
         self.assertIsNotNone(hist)
 
