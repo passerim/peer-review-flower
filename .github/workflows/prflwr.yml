@@ -4,7 +4,7 @@ name: prflwr
 
 on:
   push:
-    branches: [ main, actions ]
+    branches: [ main, actions, fedes ]
   pull_request:
     branches: [ main ]
 
