@@ -2,9 +2,9 @@ import unittest
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-from flwr.common.typing import Config, Parameters, Properties, Scalar
-from prflwr.peer_reviewed.prclient import PeerReviewClient
-from prflwr.peer_reviewed.prconfig import PrConfig
+from flwr.common.typing import Config, Properties, Scalar
+from prflwr.peer_reviewed.client import PeerReviewClient
+from prflwr.peer_reviewed.config import PrConfig
 
 
 class FailingClient(PeerReviewClient):
@@ -28,7 +28,7 @@ class FailingClient(PeerReviewClient):
         self,
         parameters: List[np.ndarray],
         config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Scalar]:
+    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         raise Exception
 
     def evaluate(
@@ -63,8 +63,8 @@ class ClientReview(FailingClient):
         self,
         parameters: List[np.ndarray],
         config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Scalar]:
-        return parameters, 0, 1
+    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        return parameters, 0, {PrConfig.REVIEW_SCORE: 1}
 
 
 class TestPeerReviewClient(unittest.TestCase):
@@ -72,39 +72,33 @@ class TestPeerReviewClient(unittest.TestCase):
         to train and review methods of subclasses based on flag value.
     """
 
+    parameters = [np.array([[1, 2], [3, 4], [5, 6]])]
+
     def test_train_success(self):
         client = ClientTrain()
-        arr = np.array([[1, 2], [3, 4], [5, 6]])
-        parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {PrConfig.REVIEW_FLAG: False}
-        _, _, train_conf = client.fit(parameters, fit_config)
+        _, _, train_conf = client.fit(self.parameters, fit_config)
         self.assertFalse(train_conf[PrConfig.REVIEW_FLAG])
 
     def test_train_failure(self):
         client = ClientTrain()
-        arr = np.array([[1, 2], [3, 4], [5, 6]])
-        parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {PrConfig.REVIEW_FLAG: False}
         try:
-            client.fit(parameters, fit_config)
+            client.fit(self.parameters, fit_config)
         except Exception as e:
             self.assertIsInstance(e, Exception)
 
     def test_review_success(self):
         client = ClientReview()
-        arr = np.array([[1, 2], [3, 4], [5, 6]])
-        parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {PrConfig.REVIEW_FLAG: True}
-        _, _, train_conf = client.fit(parameters, fit_config)
+        _, _, train_conf = client.fit(self.parameters, fit_config)
         self.assertTrue(train_conf[PrConfig.REVIEW_FLAG])
 
     def test_review_failure(self):
         client = ClientReview()
-        arr = np.array([[1, 2], [3, 4], [5, 6]])
-        parameters = Parameters(tensors=[arr], tensor_type="")
         fit_config = {PrConfig.REVIEW_FLAG: False}
         try:
-            client.fit(parameters, fit_config)
+            client.fit(self.parameters, fit_config)
         except Exception as e:
             self.assertIsInstance(e, Exception)
 

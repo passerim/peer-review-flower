@@ -70,8 +70,7 @@ setup(
     #
     install_requires=[
         "flwr[simulation]==0.19",
-        "torch",
-        "torchvision",
+        "numpy",
         "overrides",
     ],  # Optional
 )

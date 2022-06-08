@@ -1,9 +1,9 @@
 import argparse
 
 import flwr as fl
-from prflwr.peer_reviewed.prclient import PeerReviewClient
-from prflwr.peer_reviewed.prconfig import PrConfig
-from prflwr.utils.pytorch import get_parameters, set_parameters, set_seed
+from prflwr.peer_reviewed.client import PeerReviewClient
+from prflwr.peer_reviewed.config import PrConfig
+from examples.centralized.utils import get_parameters, set_parameters, set_seed
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler

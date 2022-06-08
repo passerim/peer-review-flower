@@ -6,7 +6,7 @@ from flwr.client import NumPyClient
 from flwr.common import Scalar
 from overrides import overrides
 
-from .prconfig import PrConfig
+from .config import PrConfig
 
 
 class PeerReviewClient(NumPyClient):
@@ -17,7 +17,7 @@ class PeerReviewClient(NumPyClient):
     @abstractmethod
     def review(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Scalar]:
+    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         """Review the provided weights using the locally stored dataset.
 
         Parameters

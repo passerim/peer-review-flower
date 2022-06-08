@@ -19,8 +19,8 @@ from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
 
-from ..prconfig import PrConfig
-from ..prstrategy import PeerReviewStrategy
+from ..config import PrConfig
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
@@ -213,5 +213,5 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
-        """Stop condition to decide whether or not to continue with another review round."""
+        """Stop condition to decide whether to continue with another review round."""
         return True

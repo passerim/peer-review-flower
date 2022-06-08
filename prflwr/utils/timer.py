@@ -5,6 +5,9 @@ class FitTimer:
     """A simple timer to measure time taken fitting a model."""
 
     def __init__(self, init_offset: float = 0.0):
+        self.start_time: float = None
+        self._elapsed: float = None
+        self._on: bool = None
         self.reset(init_offset)
 
     def reset(self, init_offset: float = 0.0):
@@ -26,8 +29,8 @@ class FitTimer:
 
     def get_elapsed(self) -> float:
         if self._on:
-            round = time.time()
-            return round - self.start_time
+            timestamp = time.time()
+            return timestamp - self.start_time
         return self._elapsed
 
     def is_on(self) -> bool:

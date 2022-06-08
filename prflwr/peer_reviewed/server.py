@@ -12,8 +12,8 @@ from flwr.server.server import Server, fit_clients
 from overrides import overrides
 
 from ..utils.timer import FitTimer
-from .prconfig import PrConfig
-from .prstrategy import PeerReviewStrategy
+from .config import PrConfig
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 
 class PeerReviewServer(Server):

@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from prflwr.peer_reviewed.strategies.prfedavg import PeerReviewedFedAvg
+from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
 from flwr.common import (
     Disconnect,
     EvaluateIns,
@@ -17,8 +17,8 @@ from flwr.common import (
 )
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
-from prflwr.peer_reviewed.prserver import PeerReviewServer
-from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
+from prflwr.peer_reviewed.server import PeerReviewServer
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 from prflwr.simulation.app import start_simulation
 
 

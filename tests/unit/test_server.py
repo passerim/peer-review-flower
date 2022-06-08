@@ -3,9 +3,9 @@ from unittest.mock import Mock
 
 from flwr.server.strategy.fedavg import FedAvg
 from flwr.server.client_manager import SimpleClientManager
-from prflwr.peer_reviewed.prserver import PeerReviewServer
+from prflwr.peer_reviewed.server import PeerReviewServer
 
-from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 
 TEST_VALUE = 42

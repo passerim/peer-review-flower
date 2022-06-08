@@ -7,7 +7,19 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
 
-from .prmultrev import MultipleReviewStrategy
+from prflwr.peer_reviewed.strategy.exceptions import (
+    ConfigureTrainException,
+    ConfigureReviewException,
+    ConfigureEvaluateException,
+    AggregateTrainException,
+    AggregateReviewException,
+    AggregateEvaluateException,
+    AggregateAfterReviewException,
+    EvaluateException,
+    StopReviewException,
+    InitializeParametersException,
+)
+from prflwr.peer_reviewed.strategy.prmultrev import MultipleReviewStrategy
 
 
 class PeerReviewStrategy(MultipleReviewStrategy, ABC):
@@ -47,22 +59,24 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
                     return []
                 elif isinstance(e, ConfigureReviewException):
                     return []
-                elif isinstance(e, ConfigureEvaluationException):
+                elif isinstance(e, ConfigureEvaluateException):
                     return []
                 elif isinstance(e, AggregateTrainException):
                     return None, {}
                 elif isinstance(e, AggregateReviewException):
                     return None, {}
-                elif isinstance(e, AggregateEvaluationException):
+                elif isinstance(e, AggregateEvaluateException):
                     return None, {}
                 elif isinstance(e, AggregateAfterReviewException):
                     return None
-                elif isinstance(e, EvaluationException):
+                elif isinstance(e, EvaluateException):
                     return None
                 elif isinstance(e, StopReviewException):
                     return True
                 elif isinstance(e, InitializeParametersException):
                     return None
+                else:
+                    raise TypeError
 
         return handle
 
@@ -80,48 +94,3 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
         failures: List[BaseException],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         return self.aggregate_train(rnd, results, failures).pop()
-
-
-class StrategyException(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class ConfigureTrainException(StrategyException):
-    ...
-
-
-class ConfigureEvaluationException(StrategyException):
-    ...
-
-
-class ConfigureReviewException(StrategyException):
-    ...
-
-
-class AggregateTrainException(StrategyException):
-    ...
-
-
-class AggregateEvaluationException(StrategyException):
-    ...
-
-
-class AggregateReviewException(StrategyException):
-    ...
-
-
-class AggregateAfterReviewException(StrategyException):
-    ...
-
-
-class StopReviewException(StrategyException):
-    ...
-
-
-class EvaluationException(StrategyException):
-    ...
-
-
-class InitializeParametersException(StrategyException):
-    ...

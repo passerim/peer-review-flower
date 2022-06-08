@@ -2,7 +2,7 @@ import argparse
 
 import flwr as fl
 import torch
-from prflwr.utils.pytorch import get_parameters, set_parameters, set_seed
+from examples.centralized.utils import get_parameters, set_parameters, set_seed
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
 
