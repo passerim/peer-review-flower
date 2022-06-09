@@ -10,10 +10,10 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.server import Server, fit_clients
 from overrides import overrides
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 from ..utils.timer import FitTimer
 from .config import PrConfig
-from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 
 class PeerReviewServer(Server):

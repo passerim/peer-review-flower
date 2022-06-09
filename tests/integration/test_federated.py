@@ -1,8 +1,8 @@
 import math
+import multiprocessing as mp
 import os
 import re
 import unittest
-from multiprocessing import Process
 
 from examples.federated.client import setup_client
 from examples.federated.server import setup_server
@@ -13,15 +13,16 @@ NUM_CLASSES = 10
 NUM_CLIENTS = 2
 FL_ROUNDS = 1
 PORT = 8089
+ctx = mp.get_context("spawn")
 
 
 def run_fl():
-    server = Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
+    server = ctx.Process(target=setup_server, args=(PORT, FL_ROUNDS, LOGGING_FILE))
     server.start()
 
     clients = list()
     for i in range(NUM_CLIENTS):
-        c = Process(
+        c = ctx.Process(
             target=setup_client, args=(PORT, NUM_CLIENTS, i, TRAIN_TEST_FRACTION)
         )
         c.start()

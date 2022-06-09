@@ -1,10 +1,9 @@
 import math
 import unittest
 
+from examples.centralized.centralized import Net, load_data, test, train
 from examples.centralized.utils import set_seed
 from torch.utils.data import DataLoader, Subset
-
-from examples.centralized.centralized import Net, load_data, test, train
 
 SEED = 0
 BATCH_SIZE = 32

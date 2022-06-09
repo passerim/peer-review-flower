@@ -1,7 +1,7 @@
 from .client import PeerReviewClient
 from .config import PrConfig
-from .strategy import PeerReviewStrategy
 from .server import PeerReviewServer
+from .strategy import PeerReviewStrategy
 
 __all__ = [
     "PeerReviewClient",

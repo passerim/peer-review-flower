@@ -2,10 +2,9 @@ import random
 from collections import OrderedDict
 from typing import List
 
+import flwr as fl
 import numpy as np
 import torch
-
-import flwr as fl
 
 
 def set_seed(seed):

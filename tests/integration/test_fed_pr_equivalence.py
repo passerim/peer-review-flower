@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import os
 import re
 import unittest
@@ -68,4 +69,5 @@ class TestEquivTraining(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn")
     unittest.main()

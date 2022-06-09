@@ -1,7 +1,6 @@
 import unittest
 
 import numpy as np
-from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
 from flwr.common import (
     Disconnect,
     EvaluateIns,
@@ -18,6 +17,7 @@ from flwr.common import (
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
 from prflwr.peer_reviewed.server import PeerReviewServer
+from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
 from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 from prflwr.simulation.app import start_simulation
 
@@ -64,9 +64,7 @@ class TestSimulationWithPrServer(unittest.TestCase):
 
         # Define server and assert it is a sublass of PeerReviewServer
         client_manager = SimpleClientManager()
-        server = PeerReviewServer(
-            client_manager=client_manager, strategy=strategy
-        )
+        server = PeerReviewServer(client_manager=client_manager, strategy=strategy)
         self.assertIsInstance(server, PeerReviewServer)
 
         # Start simulation and assert a value for hist is actually returned

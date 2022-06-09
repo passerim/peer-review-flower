@@ -18,9 +18,9 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
+from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 from ..config import PrConfig
-from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):

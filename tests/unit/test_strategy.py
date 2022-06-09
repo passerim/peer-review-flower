@@ -1,22 +1,21 @@
-from typing import Optional, Tuple, Dict, List
 import unittest
+from typing import Dict, List, Optional, Tuple
 
-from flwr.common import Parameters, Scalar, EvaluateRes, EvaluateIns, FitRes, FitIns
+from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
-
 from prflwr.peer_reviewed.strategy import (
-    PeerReviewStrategy,
-    ConfigureTrainException,
-    AggregateTrainException,
-    StopReviewException,
     AggregateAfterReviewException,
-    AggregateReviewException,
-    ConfigureReviewException,
-    InitializeParametersException,
-    ConfigureEvaluateException,
     AggregateEvaluateException,
+    AggregateReviewException,
+    AggregateTrainException,
+    ConfigureEvaluateException,
+    ConfigureReviewException,
+    ConfigureTrainException,
     EvaluateException,
+    InitializeParametersException,
+    PeerReviewStrategy,
+    StopReviewException,
 )
 
 
@@ -24,50 +23,84 @@ class FailingStrategy(PeerReviewStrategy):
     def __init__(self):
         super(FailingStrategy, self).__init__()
 
-    def configure_train(self, rnd: int, parameters: Parameters, client_manager: ClientManager) -> List[
-        Tuple[ClientProxy, FitIns]]:
+    def configure_train(
+        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+    ) -> List[Tuple[ClientProxy, FitIns]]:
         raise ConfigureTrainException
 
-    def aggregate_train(self, rnd: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]) -> \
-            List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
+    def aggregate_train(
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
+    ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateTrainException
 
-    def configure_review(self, rnd: int, review_rnd: int, parameters: Parameters, client_manager: ClientManager,
-                         parameters_aggregated: List[Optional[Parameters]],
-                         metrics_aggregated: List[Dict[str, Scalar]]) -> List[Tuple[ClientProxy, FitIns]]:
+    def configure_review(
+        self,
+        rnd: int,
+        review_rnd: int,
+        parameters: Parameters,
+        client_manager: ClientManager,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
+    ) -> List[Tuple[ClientProxy, FitIns]]:
         raise ConfigureReviewException
 
-    def aggregate_review(self, rnd: int, review_rnd: int, results: List[Tuple[ClientProxy, FitRes]],
-                         failures: List[BaseException]) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
+    def aggregate_review(
+        self,
+        rnd: int,
+        review_rnd: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[BaseException],
+    ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateReviewException
 
-    def aggregate_after_review(self, rnd: int, parameters_aggregated: List[Optional[Parameters]],
-                               metrics_aggregated: List[Dict[str, Scalar]], parameters: Optional[Parameters] = None) -> \
-            Optional[Parameters]:
+    def aggregate_after_review(
+        self,
+        rnd: int,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
+        parameters: Optional[Parameters] = None,
+    ) -> Optional[Parameters]:
         raise AggregateAfterReviewException
 
-    def stop_review(self, rnd: int, review_rnd: int, parameters: Parameters, client_manager: ClientManager,
-                    parameters_aggregated: List[Optional[Parameters]],
-                    metrics_aggregated: List[Dict[str, Scalar]]) -> bool:
+    def stop_review(
+        self,
+        rnd: int,
+        review_rnd: int,
+        parameters: Parameters,
+        client_manager: ClientManager,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
+    ) -> bool:
         raise StopReviewException
 
-    def initialize_parameters(self, client_manager: ClientManager) -> Optional[Parameters]:
+    def initialize_parameters(
+        self, client_manager: ClientManager
+    ) -> Optional[Parameters]:
         raise InitializeParametersException
 
-    def configure_evaluate(self, rnd: int, parameters: Parameters, client_manager: ClientManager) -> List[
-        Tuple[ClientProxy, EvaluateIns]]:
+    def configure_evaluate(
+        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+    ) -> List[Tuple[ClientProxy, EvaluateIns]]:
         raise ConfigureEvaluateException
 
-    def aggregate_evaluate(self, rnd: int, results: List[Tuple[ClientProxy, EvaluateRes]],
-                           failures: List[BaseException]) -> Tuple[Optional[float], Dict[str, Scalar]]:
+    def aggregate_evaluate(
+        self,
+        rnd: int,
+        results: List[Tuple[ClientProxy, EvaluateRes]],
+        failures: List[BaseException],
+    ) -> Tuple[Optional[float], Dict[str, Scalar]]:
         raise AggregateEvaluateException
 
-    def evaluate(self, parameters: Parameters) -> Optional[Tuple[float, Dict[str, Scalar]]]:
+    def evaluate(
+        self, parameters: Parameters
+    ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
         raise EvaluateException
 
 
 class TestFailingPeerReviewStrategy(unittest.TestCase):
-
     def setUp(self) -> None:
         self.strategy: PeerReviewStrategy = FailingStrategy()
 

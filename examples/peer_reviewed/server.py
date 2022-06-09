@@ -4,9 +4,9 @@ import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
 from prflwr.peer_reviewed.server import PeerReviewServer
 from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
-from examples.centralized.utils import get_parameters, set_seed
 
 from ..centralized.centralized import Net
+from ..centralized.utils import get_parameters, set_seed
 
 SEED = 0
 

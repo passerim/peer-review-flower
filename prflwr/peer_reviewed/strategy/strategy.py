@@ -6,18 +6,17 @@ from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
-
 from prflwr.peer_reviewed.strategy.exceptions import (
-    ConfigureTrainException,
-    ConfigureReviewException,
-    ConfigureEvaluateException,
-    AggregateTrainException,
-    AggregateReviewException,
-    AggregateEvaluateException,
     AggregateAfterReviewException,
+    AggregateEvaluateException,
+    AggregateReviewException,
+    AggregateTrainException,
+    ConfigureEvaluateException,
+    ConfigureReviewException,
+    ConfigureTrainException,
     EvaluateException,
-    StopReviewException,
     InitializeParametersException,
+    StopReviewException,
 )
 from prflwr.peer_reviewed.strategy.prmultrev import MultipleReviewStrategy
 

@@ -8,8 +8,7 @@ from prflwr.peer_reviewed.config import PrConfig
 
 
 class FailingClient(PeerReviewClient):
-    """ A client which always fails - raises Exception upon any method call.
-    """
+    """A client which always fails - raises Exception upon any method call."""
 
     def get_properties(self, config: Config) -> Properties:
         raise Exception
@@ -18,58 +17,46 @@ class FailingClient(PeerReviewClient):
         raise Exception
 
     def train(
-        self,
-        parameters: List[np.ndarray],
-        config: Dict[str, Scalar]
+        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         raise Exception
 
     def review(
-        self,
-        parameters: List[np.ndarray],
-        config: Dict[str, Scalar]
+        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         raise Exception
 
     def evaluate(
-        self,
-        parameters: List[np.ndarray],
-        config: Dict[str, Scalar]
+        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Union[
         Tuple[float, int, Dict[str, Scalar]],
         Tuple[int, float, float],
-        Tuple[int, float, float, Dict[str, Scalar]]
+        Tuple[int, float, float, Dict[str, Scalar]],
     ]:
         raise Exception
 
 
 class ClientTrain(FailingClient):
-    """ A client with a train method implementation.
-    """
+    """A client with a train method implementation."""
 
     def train(
-        self,
-        parameters: List[np.ndarray],
-        config: Dict[str, Scalar]
+        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         return parameters, 0, {}
 
 
 class ClientReview(FailingClient):
-    """ A client with a review method implementation.
-    """
+    """A client with a review method implementation."""
 
     def review(
-        self,
-        parameters: List[np.ndarray],
-        config: Dict[str, Scalar]
+        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
     ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
         return parameters, 0, {PrConfig.REVIEW_SCORE: 1}
 
 
 class TestPeerReviewClient(unittest.TestCase):
-    """ Tests correct routing of PeerReviewClient fit method calls
-        to train and review methods of subclasses based on flag value.
+    """Tests correct routing of PeerReviewClient fit method calls
+    to train and review methods of subclasses based on flag value.
     """
 
     parameters = [np.array([[1, 2], [3, 4], [5, 6]])]

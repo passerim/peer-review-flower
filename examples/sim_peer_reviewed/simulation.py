@@ -3,16 +3,15 @@ from functools import partial
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
+from prflwr.peer_reviewed.server import PeerReviewServer
+from prflwr.peer_reviewed.strategy import PeerReviewedFedAvg
+from prflwr.simulation.app import start_simulation
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from ..centralized.centralized import Net, load_data
-from examples.centralized.utils import set_seed, get_parameters
-from ..peer_reviewed.strategy import PeerReviewedFedAvg
-from prflwr.peer_reviewed.server import PeerReviewServer
+from ..centralized.utils import get_parameters, set_seed
 from ..peer_reviewed.client import CifarClient
-from prflwr.simulation.app import start_simulation
-
 
 SEED = 0
 BATCH_SIZE = 32
