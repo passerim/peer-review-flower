@@ -1,14 +1,10 @@
-# This workflow will build a Python Package
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# This workflow will build and install a Python Package.
 
 name: install
 
 on:
   push:
-    branches: [ main, actions ]
+    branches: [ main, actions, fedes ]
   pull_request:
     branches: [ main ]
 
@@ -36,3 +32,7 @@ jobs:
     - name: Test installation
       run: |
         [ $(python -m pip list | grep peer-reviewed-flower | wc -l) -eq 1 ]
+    - name: Test import
+      run: |
+        python -c "import prflwr.peer_reviewed.config" &&
+        python -c "from prflwr.peer_reviewed import PrConfig"

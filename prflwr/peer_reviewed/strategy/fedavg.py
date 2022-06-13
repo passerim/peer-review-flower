@@ -1,8 +1,5 @@
-from copy import deepcopy
-from logging import WARNING
 from typing import Callable, Dict, List, Optional, Tuple
 
-import numpy as np
 from flwr.common import (
     FitIns,
     FitRes,
@@ -12,15 +9,15 @@ from flwr.common import (
     parameters_to_weights,
     weights_to_parameters,
 )
-from flwr.common.logger import log
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
 
-from prflwr.peer_reviewed.prstrategy import PeerReviewStrategy
-from prflwr.peer_reviewed.prconfig import PrConfig
+from ..config import PrConfig
+from .exceptions import AggregateReviewException, ConfigureReviewException
+from .strategy import PeerReviewStrategy
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
@@ -102,7 +99,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
-        return super().aggregate_fit(rnd, results, failures)
+        return [super().aggregate_fit(rnd, results, failures)]
 
     @overrides
     def configure_review(
@@ -115,11 +112,11 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of review."""
-        if not isinstance(parameters_aggregated, list):
-            parameters_aggregated = [parameters_aggregated]
-        config = {}
+        if len(parameters_aggregated) != 1:
+            return ConfigureReviewException
 
         # Use custom review config function if provided
+        config = {}
         if self.on_review_config_fn is not None:
             config = self.on_review_config_fn(rnd)
 
@@ -133,33 +130,15 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         clients = client_manager.sample(
             num_clients=sample_size, min_num_clients=min_num_clients
         )
-        if len(parameters_aggregated) > sample_size:
-            log(
-                WARNING,
-                """List of aggregated parameters is longer than
-                    the number of clients sampled for the review round.""",
-            )
-            return None
-        review_instructions = []
-        num_aggregates = len(parameters_aggregated)
-        idxs = list(range(sample_size))
-        curr_agg = 0
-        while len(idxs) > 0:
-            if len(idxs) > int(num_aggregates * self.fraction_review):
-                curr_idxs = np.random.choice(
-                    idxs, size=int(num_aggregates * self.fraction_review), replace=False
-                )
-            else:
-                curr_idxs = deepcopy(idxs)
-            aggregate = parameters_aggregated[curr_agg]
-            review_ins = FitIns(aggregate, config)
-            curr_instructions = [
-                (client, review_ins) for client in map(clients.__getitem__, curr_idxs)
-            ]
-            review_instructions.extend(curr_instructions)
-            for idx in curr_idxs:
-                idxs.remove(idx)
-        return review_instructions
+
+        # Make review instructions
+        review_parameters = parameters_aggregated.pop(0)
+        if review_parameters:
+            review_ins = FitIns(review_parameters, config)
+            review_instructions = [(client, review_ins) for client in clients]
+            return review_instructions
+        else:
+            return ConfigureReviewException
 
     @overrides
     def aggregate_review(
@@ -173,19 +152,19 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         # Do not aggregate if there are no results or
         # if there are failures and failures are not accepted
         if not results:
-            return None
+            return AggregateReviewException
         if not self.accept_failures and failures:
-            return None
+            return AggregateReviewException
 
         # Aggregate review round results
         aggregated_result = aggregate(
             [
-                (parameters_to_weights(result.parameters), 1)
-                for client, result in results
+                (parameters_to_weights(result.parameters), result.num_examples)
+                for _, result in results
             ]
         )
         aggregated_result = weights_to_parameters(aggregated_result)
-        return [aggregated_result], [{}]
+        return [(aggregated_result, {})]
 
     @overrides
     def aggregate_after_review(
@@ -195,13 +174,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         metrics_aggregated: List[Dict[str, Scalar]],
         parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
-        aggregated_result = aggregate(
-            [
-                (parameters_to_weights(parameters), 1)
-                for parameters in parameters_aggregated
-            ]
-        )
-        return weights_to_parameters(aggregated_result)
+        return parameters_aggregated.pop(0)
 
     @overrides
     def stop_review(
@@ -213,5 +186,5 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
-        """Stop condition to decide whether or not to continue with another review round."""
+        """Stop condition to decide whether to continue with another review round."""
         return True

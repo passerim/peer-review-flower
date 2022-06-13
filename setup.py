@@ -58,7 +58,7 @@ setup(
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
-    packages=find_packages(include=["prflwr", "prflwr.*"]),  # Required
+    packages=find_packages(exclude=["tests", "tests.*"]),  # Required
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match.
@@ -69,9 +69,8 @@ setup(
     # installed, so they must be valid existing projects.
     #
     install_requires=[
-        "flwr[simulation]==0.18",
-        "torch==1.11.0",
-        "torchvision==0.12.0",
-        "overrides==6.1.0",
+        "flwr[simulation]==0.19",
+        "numpy",
+        "overrides",
     ],  # Optional
 )

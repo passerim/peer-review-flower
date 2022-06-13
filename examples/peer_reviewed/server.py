@@ -2,11 +2,11 @@ import argparse
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
-from prflwr.peer_reviewed.prserver import PeerReviewServer
-from prflwr.utils.pytorch import get_parameters, set_seed
+from prflwr.peer_reviewed.server import PeerReviewServer
+from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
 
 from ..centralized.centralized import Net
-from .strategy import PeerReviewedFedAvg
+from ..centralized.utils import get_parameters, set_seed
 
 SEED = 0
 

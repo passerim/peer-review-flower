@@ -3,16 +3,15 @@ from functools import partial
 
 import flwr as fl
 from flwr.server.client_manager import SimpleClientManager
+from prflwr.peer_reviewed.server import PeerReviewServer
+from prflwr.peer_reviewed.strategy import PeerReviewedFedAvg
+from prflwr.simulation.app import start_simulation
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from ..centralized.centralized import Net, load_data
-from prflwr.utils.pytorch import set_seed, get_parameters
-from ..peer_reviewed.strategy import PeerReviewedFedAvg
-from prflwr.peer_reviewed.prserver import PeerReviewServer
+from ..centralized.utils import get_parameters, set_seed
 from ..peer_reviewed.client import CifarClient
-from prflwr.simulation.app import start_simulation
-
 
 SEED = 0
 BATCH_SIZE = 32
@@ -65,6 +64,8 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
+        client_resources={"num_cpus": 1, "num_gpus": 1},
+        ray_init_args={"local_mode": True, "include_dashboard": False},
     )
     return hist
 

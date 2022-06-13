@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from prflwr.utils.pytorch import set_seed
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
+
+from .utils import set_seed
 
 SEED = 0
 BATCH_SIZE = 32
@@ -42,7 +43,7 @@ def train(net, trainloader, epochs: int, device="cpu", verbose=False):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(images)
-            loss = criterion(net(images), labels)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
             epoch_loss += loss

@@ -2,9 +2,9 @@ import argparse
 
 import flwr as fl
 from flwr.server.strategy import FedAvg
-from prflwr.utils.pytorch import get_parameters, set_seed
 
 from ..centralized.centralized import Net
+from ..centralized.utils import get_parameters, set_seed
 
 SEED = 0
 
