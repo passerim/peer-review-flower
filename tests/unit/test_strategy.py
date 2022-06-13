@@ -1,5 +1,6 @@
 import unittest
 from typing import Dict, List, Optional, Tuple
+from unittest.mock import MagicMock
 
 from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
@@ -106,15 +107,15 @@ class TestFailingPeerReviewStrategy(unittest.TestCase):
 
     def test_configure_train(self):
         res = self.strategy.configure_train(None, None, None)
-        self.assertIsInstance(res, list) and self.assertEqual(len(res), 0)
+        self.assertIsNone(res)
 
     def test_configure_review(self):
         res = self.strategy.configure_review(None, None, None, None, None, None)
-        self.assertIsInstance(res, list) and self.assertEqual(len(res), 0)
+        self.assertIsNone(res)
 
     def test_configure_evaluate(self):
         res = self.strategy.configure_evaluate(None, None, None)
-        self.assertIsInstance(res, list) and self.assertEqual(len(res), 0)
+        self.assertIsNone(res)
 
     def test_aggregate_train(self):
         res, _ = self.strategy.aggregate_train(None, None, None)
@@ -143,6 +144,34 @@ class TestFailingPeerReviewStrategy(unittest.TestCase):
     def test_initialize_parameters(self):
         res = self.strategy.initialize_parameters(None)
         self.assertIsNone(res)
+
+
+class MockStrategy(FailingStrategy):
+    def __init__(self):
+        super().__init__()
+        self.configure_train = MagicMock()
+        self.configure_review = MagicMock()
+        self.configure_evaluate = MagicMock()
+        self.aggregate_train = MagicMock()
+        self.aggregate_review = MagicMock()
+        self.aggregate_evaluate = MagicMock()
+        self.aggregate_after_review = MagicMock()
+        self.stop_review = MagicMock()
+        self.initialize_parameters = MagicMock()
+        self.evaluate = MagicMock()
+
+
+class TestSubstitution(unittest.TestCase):
+    def setUp(self) -> None:
+        self.strategy: PeerReviewStrategy = MockStrategy()
+
+    def test_configure_fit_substitution(self):
+        self.strategy.configure_fit(None, None, None)
+        self.strategy.configure_train.assert_called_once()
+
+    def test_aggregate_fit_substitution(self):
+        self.strategy.aggregate_fit(None, None, None)
+        self.strategy.aggregate_train.assert_called_once()
 
 
 if __name__ == "__main__":

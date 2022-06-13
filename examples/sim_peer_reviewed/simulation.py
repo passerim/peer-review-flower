@@ -64,6 +64,8 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
+        client_resources={"num_cpus": 1, "num_gpus": 1},
+        ray_init_args={"local_mode": True, "include_dashboard": False},
     )
     return hist
 

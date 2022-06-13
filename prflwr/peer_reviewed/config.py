@@ -4,6 +4,5 @@ class PrConfig:
     """
 
     REVIEW_FLAG = "review"
-    REVIEW_SCORE = "rev_score"
-    TRAIN_SCORE = "score"
+    REVIEW_SCORE = "review_score"
     MAX_REVIEW_ROUNDS = 5

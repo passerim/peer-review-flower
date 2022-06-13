@@ -8,13 +8,13 @@ from prflwr.peer_reviewed.config import PrConfig
 
 
 class FailingClient(PeerReviewClient):
-    """A client which always fails - raises Exception upon any method call."""
+    """A client which always fails - raises Exception or NotImplementedError upon any method call."""
 
     def get_properties(self, config: Config) -> Properties:
-        raise Exception
+        raise NotImplementedError
 
     def get_parameters(self) -> List[np.ndarray]:
-        raise Exception
+        raise NotImplementedError
 
     def train(
         self, parameters: List[np.ndarray], config: Dict[str, Scalar]

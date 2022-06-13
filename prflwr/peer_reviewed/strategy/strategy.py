@@ -55,11 +55,11 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
                 return method(*args, **kwargs)
             except Exception as e:
                 if isinstance(e, ConfigureTrainException):
-                    return []
+                    return None
                 elif isinstance(e, ConfigureReviewException):
-                    return []
+                    return None
                 elif isinstance(e, ConfigureEvaluateException):
-                    return []
+                    return None
                 elif isinstance(e, AggregateTrainException):
                     return None, {}
                 elif isinstance(e, AggregateReviewException):
