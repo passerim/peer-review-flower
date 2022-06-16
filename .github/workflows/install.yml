@@ -4,7 +4,7 @@ name: install
 
 on:
   push:
-    branches: [ main, actions, fedes ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -34,5 +34,5 @@ jobs:
         [ $(python -m pip list | grep peer-reviewed-flower | wc -l) -eq 1 ]
     - name: Test import
       run: |
-        python -c "import prflwr.peer_reviewed.config" &&
-        python -c "from prflwr.peer_reviewed import PrConfig"
+        python -c "import prflwr.peer_review.config" &&
+        python -c "from prflwr.peer_review import PrConfig"
