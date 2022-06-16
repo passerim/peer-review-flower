@@ -18,10 +18,8 @@ from flwr.common.typing import Disconnect, Reconnect
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy.fedavg import FedAvg
-from prflwr.peer_reviewed import PeerReviewClient
-from prflwr.peer_reviewed.config import PrConfig
-from prflwr.peer_reviewed.server import PeerReviewServer
-from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
+from prflwr.peer_review import PeerReviewClient, PeerReviewServer, PrConfig
+from prflwr.peer_review.strategy import PeerReviewStrategy
 from tests.unit.test_strategy import FailingStrategy
 
 TEST_VALUE = 42

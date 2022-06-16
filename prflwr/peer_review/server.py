@@ -6,16 +6,15 @@ import numpy as np
 from flwr.common import FitRes, Parameters, Scalar
 from flwr.common.logger import log
 from flwr.common.parameter import weights_to_parameters
-from flwr.common.typing import FitIns
+from flwr.common.typing import FitIns, ParametersRes
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.server import Server, fit_clients
 from overrides import overrides
-from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
-
-from ..utils.timer import FitTimer
-from .config import PrConfig
+from prflwr.peer_review.config import PrConfig
+from prflwr.peer_review.strategy.strategy import PeerReviewStrategy
+from prflwr.utils.timer import FitTimer
 
 
 class PeerReviewServer(Server):
@@ -208,9 +207,9 @@ class PeerReviewServer(Server):
         client_instructions = self.strategy.configure_train(
             rnd=rnd, parameters=self.parameters, client_manager=self._client_manager
         )
-        if not client_instructions or len(client_instructions) < 1:
+        if not isinstance(client_instructions, list) or len(client_instructions) < 1:
             log(INFO, "train_round: no clients selected, cancel")
-            return None, {}
+            return None, []
         log(
             DEBUG,
             "train_round: strategy sampled %s clients (out of %s)",
@@ -232,10 +231,9 @@ class PeerReviewServer(Server):
         )
         # Aggregate training results
         aggregated_result = self.strategy.aggregate_train(rnd, results, failures)
-        metrics_aggregated = {}
-        if aggregated_result is None or len(aggregated_result) < 1:
-            log(WARNING, "Aggregated result cannot be empty!")
-            return None, {}
+        if not isinstance(aggregated_result, list) or len(aggregated_result) < 1:
+            log(WARNING, "Aggregated train result cannot be empty!")
+            return None, []
         else:
             parameters_aggregated = [res[0] for res in aggregated_result]
             metrics_aggregated = [res[1] for res in aggregated_result]
@@ -269,9 +267,9 @@ class PeerReviewServer(Server):
             parameters_aggregated=parameters_aggregated,
             metrics_aggregated=metrics_aggregated,
         )
-        if not review_instructions or len(review_instructions) < 1:
+        if not isinstance(review_instructions, list) or len(review_instructions) < 1:
             log(INFO, "review_round: no clients selected, cancel")
-            return None, {}
+            return None, []
         review_instructions = self.add_review_flag_if_missing(review_instructions)
         log(
             DEBUG,
@@ -296,10 +294,10 @@ class PeerReviewServer(Server):
         aggregated_result = self.strategy.aggregate_review(
             rnd, review_rnd, results, failures
         )
-        if aggregated_result is None or len(aggregated_result) < 1:
-            log(WARNING, "Aggregated result cannot be empty!")
-            return None, {}
-        else:
+        if not isinstance(review_instructions, list):
+            log(WARNING, "Aggregated review result is invalid!")
+            return None, []
+        elif len(aggregated_result) >= 1:
             parameters_aggregated = [res[0] for res in aggregated_result]
             metrics_aggregated = [res[1] for res in aggregated_result]
         return parameters_aggregated, metrics_aggregated
@@ -326,7 +324,7 @@ class PeerReviewServer(Server):
 def get_parameters_from_client(
     random_client: ClientProxy,
     timeout: Optional[float],
-) -> Optional[Parameters]:
+) -> Optional[ParametersRes]:
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         submitted_fs = {
             executor.submit(lambda: random_client.get_parameters(timeout=timeout))

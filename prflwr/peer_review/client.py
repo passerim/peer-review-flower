@@ -5,8 +5,7 @@ import numpy as np
 from flwr.client import NumPyClient
 from flwr.common import Scalar
 from overrides import overrides
-
-from .config import PrConfig
+from prflwr.peer_review.config import PrConfig
 
 
 class PeerReviewClient(NumPyClient):

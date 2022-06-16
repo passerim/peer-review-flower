@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from prflwr.utils.timer import FitTimer
+from prflwr.utils import FitTimer
 
 
 class TestFitTimer(unittest.TestCase):

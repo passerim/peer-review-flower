@@ -1,12 +1,11 @@
 import argparse
 
 import flwr as fl
+from examples.centralized.centralized import Net
+from examples.centralized.utils import get_parameters, set_seed
 from flwr.server.client_manager import SimpleClientManager
-from prflwr.peer_reviewed.server import PeerReviewServer
-from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
-
-from ..centralized.centralized import Net
-from ..centralized.utils import get_parameters, set_seed
+from prflwr.peer_review.server import PeerReviewServer
+from prflwr.peer_review.strategy.fedavg import PeerReviewedFedAvg
 
 SEED = 0
 

@@ -3,8 +3,7 @@ from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from flwr.common.typing import Config, Properties, Scalar
-from prflwr.peer_reviewed.client import PeerReviewClient
-from prflwr.peer_reviewed.config import PrConfig
+from prflwr.peer_review import PeerReviewClient, PrConfig
 
 
 class FailingClient(PeerReviewClient):

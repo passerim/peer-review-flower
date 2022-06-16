@@ -1,14 +1,13 @@
 import argparse
 
 import flwr as fl
-from prflwr.peer_reviewed.client import PeerReviewClient
-from prflwr.peer_reviewed.config import PrConfig
+from examples.centralized.centralized import Net, load_data, test, train
+from examples.centralized.utils import get_parameters, set_parameters, set_seed
+from prflwr.peer_review.client import PeerReviewClient
+from prflwr.peer_review.config import PrConfig
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
-
-from ..centralized.centralized import Net, load_data, test, train
-from ..centralized.utils import get_parameters, set_parameters, set_seed
 
 SEED = 0
 BATCH_SIZE = 32

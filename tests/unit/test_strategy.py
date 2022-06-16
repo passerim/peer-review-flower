@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
-from prflwr.peer_reviewed.strategy import (
+from prflwr.peer_review.strategy import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
     AggregateReviewException,

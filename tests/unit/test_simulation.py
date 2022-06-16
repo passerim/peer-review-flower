@@ -16,10 +16,9 @@ from flwr.common import (
 )
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
-from prflwr.peer_reviewed.server import PeerReviewServer
-from prflwr.peer_reviewed.strategy.fedavg import PeerReviewedFedAvg
-from prflwr.peer_reviewed.strategy.strategy import PeerReviewStrategy
-from prflwr.simulation.app import start_simulation
+from prflwr.peer_review import PeerReviewServer
+from prflwr.peer_review.strategy import PeerReviewedFedAvg, PeerReviewStrategy
+from prflwr.simulation import start_simulation
 
 
 class NamedSimulationClient(ClientProxy):

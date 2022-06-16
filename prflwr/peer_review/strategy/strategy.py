@@ -6,7 +6,7 @@ from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
-from prflwr.peer_reviewed.strategy.exceptions import (
+from prflwr.peer_review.strategy.exceptions import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
     AggregateReviewException,
@@ -18,7 +18,7 @@ from prflwr.peer_reviewed.strategy.exceptions import (
     InitializeParametersException,
     StopReviewException,
 )
-from prflwr.peer_reviewed.strategy.prmultrev import MultipleReviewStrategy
+from prflwr.peer_review.strategy.prmultrev import MultipleReviewStrategy
 
 
 class PeerReviewStrategy(MultipleReviewStrategy, ABC):
