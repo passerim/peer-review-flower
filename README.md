@@ -7,7 +7,9 @@ Peer reviewed federated learning usign Flower.
 
 ## Installation
 
-Project dependencies are included in the ```requirement.txt``` file, install them using pip or similar tools.
+Install using pip with: ```pip install git+https://github.com/passerim/peer-reviewed-flower.git```
+
+Project dependencies are also included in the ```requirements.txt``` file, install them using pip or similar tools.
 
 ## Class and sequence diagrams
 

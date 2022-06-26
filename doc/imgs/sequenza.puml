@@ -1,24 +1,24 @@
 @startuml sequenza
-PeerReviewedServer -> PeerReviewedStrategy: configure_train()
-PeerReviewedStrategy -> ClientManager: sample()
-ClientManager -> PeerReviewedStrategy: clients
-PeerReviewedStrategy -> PeerReviewedServer: client_instructions
-PeerReviewedServer -> PeerReviewedClient: fit_client(client_instructions, REVIEW=False|None)
-PeerReviewedClient -> PeerReviewedServer: FitRes(REVIEW=False)
-PeerReviewedServer -> PeerReviewedStrategy: aggregated_result()
-PeerReviewedStrategy -> PeerReviewedServer: aggregated_result
+PeerReviewServer -> PeerReviewStrategy: configure_train()
+PeerReviewStrategy -> ClientManager: sample()
+ClientManager -> PeerReviewStrategy: clients
+PeerReviewStrategy -> PeerReviewServer: client_instructions
+PeerReviewServer -> PeerReviewClient: fit_client(client_instructions, REVIEW=False|None)
+PeerReviewClient -> PeerReviewServer: FitRes(REVIEW=False)
+PeerReviewServer -> PeerReviewStrategy: aggregated_result()
+PeerReviewStrategy -> PeerReviewServer: aggregated_result
 loop do while stop_flag != TRUE
-    PeerReviewedServer -> PeerReviewedStrategy: configure_review(aggregated_result)
-    PeerReviewedStrategy -> ClientManager: sample()
-    ClientManager -> PeerReviewedStrategy: clients
-    PeerReviewedStrategy -> PeerReviewedServer: review_instructions
-    PeerReviewedServer -> PeerReviewedClient: fit_client(review_instructions, REVIEW=True)
-    PeerReviewedClient -> PeerReviewedServer: FitRes(REVIEW=True)
-    PeerReviewedServer -> PeerReviewedStrategy: aggregate_review()
-    PeerReviewedStrategy -> PeerReviewedServer: aggregated_result
-    PeerReviewedServer -> PeerReviewedStrategy: stop_review(aggregated_result)
-    PeerReviewedStrategy -> PeerReviewedServer: stop_flag
+    PeerReviewServer -> PeerReviewStrategy: configure_review(aggregated_result)
+    PeerReviewStrategy -> ClientManager: sample()
+    ClientManager -> PeerReviewStrategy: clients
+    PeerReviewStrategy -> PeerReviewServer: review_instructions
+    PeerReviewServer -> PeerReviewClient: fit_client(review_instructions, REVIEW=True)
+    PeerReviewClient -> PeerReviewServer: FitRes(REVIEW=True)
+    PeerReviewServer -> PeerReviewStrategy: aggregate_review()
+    PeerReviewStrategy -> PeerReviewServer: aggregated_result
+    PeerReviewServer -> PeerReviewStrategy: stop_review(aggregated_result)
+    PeerReviewStrategy -> PeerReviewServer: stop_flag
 end
-PeerReviewedServer -> PeerReviewedStrategy: aggregate_after_review(aggregated_result)
-PeerReviewedStrategy -> PeerReviewedServer: parameters_aggregated
+PeerReviewServer -> PeerReviewStrategy: aggregate_after_review(aggregated_result)
+PeerReviewStrategy -> PeerReviewServer: parameters_aggregated
 @enduml
