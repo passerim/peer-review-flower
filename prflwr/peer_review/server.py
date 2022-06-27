@@ -200,7 +200,6 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
-    @overrides
     def fit_round(
         self, rnd: int, timeout: Optional[float]
     ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
@@ -303,7 +302,6 @@ class PeerReviewServer(Server):
             metrics_aggregated = [res[1] for res in aggregated_result]
         return parameters_aggregated, metrics_aggregated
 
-    @overrides
     def _get_initial_parameters(self, timeout: Optional[float]) -> Optional[Parameters]:
         """Get initial parameters from one of the available clients."""
 
