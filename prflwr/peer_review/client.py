@@ -9,8 +9,8 @@ from prflwr.peer_review.config import PrConfig
 
 
 class PeerReviewClient(NumPyClient):
-    """Abstract class clients should extend implementing missing methods, which provides
-    the routing of incoming packets from the server to the train or review methods.
+    """Abstract class federated learning clients should extend implementing missing methods,
+    which provides the routing of incoming packets from the server to the train and review methods.
     """
 
     @abstractmethod
@@ -22,12 +22,11 @@ class PeerReviewClient(NumPyClient):
         Parameters
         ----------
         parameters : List[np.ndarray]
-            The current (global) model parameters sent by the centralized aggregator.
+            The current (global) model parameters.
         config : Dict[str, Scalar]
-            Configuration parameters which allow the aggregator to influence review
+            Configuration parameters which allow the server to influence reviewing
             on the client. It can be used to communicate arbitrary values from the
-            aggregator to the client, for example, to influence the number of examples
-            used for reviewing.
+            server to the client.
 
         Returns
         -------
@@ -38,7 +37,7 @@ class PeerReviewClient(NumPyClient):
         metrics : Dict[str, Scalar]
             A dictionary mapping arbitrary string keys to values of type
             bool, bytes, float, int, or str. It can be used to communicate
-            arbitrary values back to the aggregator.
+            arbitrary values back to the server.
         """
 
     @abstractmethod
@@ -50,12 +49,11 @@ class PeerReviewClient(NumPyClient):
         Parameters
         ----------
         parameters : List[numpy.ndarray]
-            The current (global) model parameters sent by the centralized aggregator.
+            The current (global) model parameters.
         config : Dict[str, Scalar]
-            Configuration parameters which allow the aggregator to influence training
+            Configuration parameters which allow the server to influence training
             on the client. It can be used to communicate arbitrary values from the
-            aggregator to the client, for example, to set the number of (local)
-            training epochs.
+            server to the client.
 
         Returns
         -------

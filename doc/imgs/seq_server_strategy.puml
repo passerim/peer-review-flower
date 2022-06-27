@@ -1,4 +1,4 @@
-@startuml sequenza
+@startuml seq_server_strategy
 PeerReviewServer -> PeerReviewStrategy: configure_train(                                                \
     rnd: int, parameters: Parameters, client_manager: ClientManager                                         \
 )

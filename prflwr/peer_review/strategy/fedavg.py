@@ -23,7 +23,9 @@ from prflwr.peer_review.strategy.strategy import (
 
 
 class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
-    """Peer Reviewed FedAvg strategy implementation."""
+    """Peer Reviewed FedAvg strategy implementation,
+    a simple implementation of a strategy which is equivalent
+    to Federated Averaging and should be used mainly for testing."""
 
     def __init__(
         self,

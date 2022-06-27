@@ -20,7 +20,7 @@ from prflwr.utils.timer import FitTimer
 class PeerReviewServer(Server):
     """Implementation of a federated learning server that supports an experimental
     peer review mechanism of model updates based on trained parameters received by
-    worker-clients and evaluation of these parameters over multiple review rounds.
+    clients and evaluation of these parameters over multiple review rounds.
     """
 
     def __init__(
@@ -200,6 +200,7 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
+    @overrides
     def fit_round(
         self, rnd: int, timeout: Optional[float]
     ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
@@ -302,6 +303,7 @@ class PeerReviewServer(Server):
             metrics_aggregated = [res[1] for res in aggregated_result]
         return parameters_aggregated, metrics_aggregated
 
+    @overrides
     def _get_initial_parameters(self, timeout: Optional[float]) -> Optional[Parameters]:
         """Get initial parameters from one of the available clients."""
 

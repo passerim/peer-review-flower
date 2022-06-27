@@ -74,4 +74,5 @@ MultipleReviewStrategy <|-- PeerReviewStrategy
 PeerReviewStrategy <|-- PeerReviewStrategyImpl
 PeerReviewStrategyImpl --o PeerReviewServer
 SimpleClientManager --o PeerReviewServer
+ClientImpl <.. SimpleClientManager
 @enduml
