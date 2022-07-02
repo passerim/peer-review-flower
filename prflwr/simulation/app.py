@@ -100,8 +100,10 @@ def start_simulation(
     keep_initialised: Optional[bool] (default: False)
         Set to True to prevent `ray.shutdown()` in case `ray.is_initialized()=True`.
 
-    Returns:
-        hist: flwr.server.history.History. Object containing metrics from training.
+    Returns
+    -------
+    hist : flwr.server.history.History.
+        Object containing metrics from training.
     """
     cids: List[str]
 

@@ -34,6 +34,7 @@ class FailingStrategy(PeerReviewStrategy):
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateTrainException
 
@@ -54,6 +55,9 @@ class FailingStrategy(PeerReviewStrategy):
         review_rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Parameters,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateReviewException
 
@@ -118,11 +122,11 @@ class TestFailingPeerReviewStrategy(unittest.TestCase):
         self.assertIsNone(res)
 
     def test_aggregate_train(self):
-        res, _ = self.strategy.aggregate_train(None, None, None)
+        res, _ = self.strategy.aggregate_train(None, None, None, None)
         self.assertIsNone(res)
 
     def test_aggregate_review(self):
-        res, _ = self.strategy.aggregate_review(None, None, None, None)
+        res, _ = self.strategy.aggregate_review(None, None, None, None, None, None, None)
         self.assertIsNone(res)
 
     def test_aggregate_evaluate(self):

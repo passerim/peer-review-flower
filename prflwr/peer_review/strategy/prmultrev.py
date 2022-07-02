@@ -40,6 +40,7 @@ class MultipleReviewStrategy(Strategy):
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         """Aggregate training results of the current round of federated learning.
 
@@ -57,12 +58,14 @@ class MultipleReviewStrategy(Strategy):
         failures : List[BaseException]
             Exceptions that occurred while the server was waiting for client
             updates.
+        parameters : Optional[Parameters]
+            The current (global) model parameters.
 
         Returns
         -------
         aggregated_result : List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
             If a list of parameters and metrics are returned, then the server will
-            use this parameters and metrics as the input for the next review step.
+            use these parameters and metrics as the input for the next review step.
             If `None` is returned (e.g., because there were only failures and no viable
             results) then the server will not update the previous model parameters,
             the updates received in this round are discarded, and the global model
@@ -115,6 +118,9 @@ class MultipleReviewStrategy(Strategy):
         review_rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Parameters,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         """Aggregate review results.
 
@@ -134,12 +140,20 @@ class MultipleReviewStrategy(Strategy):
         failures : List[BaseException]
             Exceptions that occurred while the server was waiting for client
             updates.
+        parameters : Parameters
+            The current (global) model parameters.
+        parameters_aggregated : List[Optional[Parameters]]
+            A list of `Parameters` from the previous round of train or review.
+        metrics_aggregated : List[Dict[str, Scalar]]
+            A list of `Dict` with metrics from the previous round of train
+            or review, corresponding to each `Parameters` in the list
+            `parameters_aggregated`.
 
         Returns
         -------
         aggregated_result : List[Tuple[Optional[Parameters], Dict[str, Scalar]]]
             If parameters are returned, then the server will treat these as the
-            new global model canidate parameters, and they will be used in the next
+            new global model candidate parameters, and they will be used in the next
             round of reviewing or as inputs of the post-reviewing aggregation function.
             If `None` is returned (e.g., because there were only failures and no viable
             results) then the server will not update the previous model parameters,
@@ -151,9 +165,9 @@ class MultipleReviewStrategy(Strategy):
     def aggregate_after_review(
         self,
         rnd: int,
+        parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
-        parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
         """Aggregate results of the last round of review.
 
@@ -161,14 +175,14 @@ class MultipleReviewStrategy(Strategy):
         ----------
         rnd : int
             The current round of federated learning.
+        parameters : Optional[Parameters]
+            The current (global) model parameters.
         parameters_aggregated: List[Optional[Parameters]]
             List of model parameters from successful review results at the end
             of the previous review rounds.
         metrics_aggregated: List[Dict[str, Scalar]],
             List of metrics from successful review results at the end
             of the previous review rounds.
-        parameters : Optional[Parameters]
-            The current (global) model parameters.
 
         Returns
         -------

@@ -14,7 +14,6 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
 from overrides.overrides import overrides
-from prflwr.peer_review.config import PrConfig
 from prflwr.peer_review.strategy.strategy import (
     AggregateReviewException,
     ConfigureReviewException,
@@ -66,7 +65,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         on_evaluate_config_fn : Callable[[int], Dict[str, Scalar]], optional
             Function used to configure validation. Defaults to None.
         accept_failures : bool, optional
-            Whether or not accept rounds containing failures. Defaults to True.
+            Whether accept rounds containing failures. Defaults to True.
         initial_parameters : Parameters, optional
             Initial global model parameters.
         """
@@ -102,6 +101,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         return [super().aggregate_fit(rnd, results, failures)]
 
@@ -117,16 +117,11 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of review."""
         if len(parameters_aggregated) != 1:
-            return ConfigureReviewException
-
+            raise ConfigureReviewException
         # Use custom review config function if provided
         config = {}
         if self.on_review_config_fn is not None:
             config = self.on_review_config_fn(rnd)
-
-        # Set review flag
-        config.setdefault(PrConfig.REVIEW_FLAG, True)
-
         # Sample clients
         sample_size, min_num_clients = self.num_fit_clients(
             client_manager.num_available()
@@ -134,15 +129,13 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         clients = client_manager.sample(
             num_clients=sample_size, min_num_clients=min_num_clients
         )
-
         # Make review instructions
         review_parameters = parameters_aggregated.pop(0)
         if review_parameters:
             review_ins = FitIns(review_parameters, config)
-            review_instructions = [(client, review_ins) for client in clients]
-            return review_instructions
+            return [(client, review_ins) for client in clients]
         else:
-            return ConfigureReviewException
+            raise ConfigureReviewException
 
     @overrides
     def aggregate_review(
@@ -151,15 +144,16 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         review_rnd: int,
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[BaseException],
+        parameters: Parameters,
+        parameters_aggregated: List[Optional[Parameters]],
+        metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
-
         # Do not aggregate if there are no results or
         # if there are failures and failures are not accepted
         if not results:
-            return AggregateReviewException
+            raise AggregateReviewException
         if not self.accept_failures and failures:
-            return AggregateReviewException
-
+            raise AggregateReviewException
         # Aggregate review round results
         aggregated_result = aggregate(
             [
@@ -167,16 +161,15 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
                 for _, result in results
             ]
         )
-        aggregated_result = weights_to_parameters(aggregated_result)
-        return [(aggregated_result, {})]
+        return [(weights_to_parameters(aggregated_result), {})]
 
     @overrides
     def aggregate_after_review(
         self,
         rnd: int,
+        parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
-        parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
         return parameters_aggregated.pop(0)
 

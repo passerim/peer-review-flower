@@ -1,4 +1,5 @@
 import unittest
+from typing import Optional
 
 import numpy as np
 from flwr.common import (
@@ -28,21 +29,21 @@ class NamedSimulationClient(ClientProxy):
         arr_serialized = ndarray_to_bytes(arr)
         self.parameters = Parameters(tensors=[arr_serialized], tensor_type="")
 
-    def get_properties(self, ins: PropertiesIns) -> PropertiesRes:
+    def get_properties(self, ins: PropertiesIns, timeout: Optional[float]) -> PropertiesRes:
         # This method is not expected to be called
         raise Exception
 
-    def get_parameters(self) -> ParametersRes:
+    def get_parameters(self, timeout: Optional[float]) -> ParametersRes:
         return ParametersRes(self.parameters)
 
-    def fit(self, ins: FitIns) -> FitRes:
-        return self.get_parameters()
+    def fit(self, ins: FitIns, timeout: Optional[float]) -> FitRes:
+        return FitRes(self.get_parameters(None).parameters, 0, {})
 
-    def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
+    def evaluate(self, ins: EvaluateIns, timeout: Optional[float]) -> EvaluateRes:
         # This method is not expected to be called
         raise Exception
 
-    def reconnect(self, reconnect: Reconnect) -> Disconnect:
+    def reconnect(self, reconnect: Reconnect, timeout: Optional[float]) -> Disconnect:
         # This method is not expected to be called
         raise Exception
 

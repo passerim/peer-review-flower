@@ -33,6 +33,7 @@ class PeerReviewServer(Server):
         super().__init__(client_manager, strategy)
         if isinstance(strategy, PeerReviewStrategy):
             self.max_review_rounds = max_review_rounds
+            self.strategy: PeerReviewStrategy = strategy
         else:
             self.fit_round = super().fit_round
             self.fit = super().fit
@@ -72,7 +73,7 @@ class PeerReviewServer(Server):
                     current_round,
                     current_review,
                     self.parameters,
-                    self.client_manager,
+                    self._client_manager,
                     parameters_aggregated,
                     metrics_aggregated,
                 ):
@@ -126,7 +127,10 @@ class PeerReviewServer(Server):
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> bool:
         parameters_prime = self.strategy.aggregate_after_review(
-            current_round, parameters_aggregated, metrics_aggregated, self.parameters
+            rnd=current_round,
+            parameters=self.parameters,
+            parameters_aggregated=parameters_aggregated,
+            metrics_aggregated=metrics_aggregated,
         )
         if parameters_prime is None:
             log(
@@ -230,7 +234,12 @@ class PeerReviewServer(Server):
             len(failures),
         )
         # Aggregate training results
-        aggregated_result = self.strategy.aggregate_train(rnd, results, failures)
+        aggregated_result = self.strategy.aggregate_train(
+            rnd=rnd,
+            results=results,
+            failures=failures,
+            parameters=self.parameters,
+        )
         if not isinstance(aggregated_result, list) or len(aggregated_result) < 1:
             log(WARNING, "Aggregated train result cannot be empty!")
             return None, []
@@ -292,7 +301,13 @@ class PeerReviewServer(Server):
         )
         # Aggregate review results
         aggregated_result = self.strategy.aggregate_review(
-            rnd, review_rnd, results, failures
+            rnd=rnd,
+            review_rnd=review_rnd,
+            results=results,
+            failures=failures,
+            parameters=self.parameters,
+            parameters_aggregated=parameters_aggregated,
+            metrics_aggregated=metrics_aggregated,
         )
         if not isinstance(review_instructions, list):
             log(WARNING, "Aggregated review result is invalid!")
