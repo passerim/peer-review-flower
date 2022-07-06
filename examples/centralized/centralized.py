@@ -2,10 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
+from examples.centralized.utils import set_seed
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
-
-from .utils import set_seed
 
 SEED = 0
 BATCH_SIZE = 32

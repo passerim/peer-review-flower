@@ -29,7 +29,9 @@ class NamedSimulationClient(ClientProxy):
         arr_serialized = ndarray_to_bytes(arr)
         self.parameters = Parameters(tensors=[arr_serialized], tensor_type="")
 
-    def get_properties(self, ins: PropertiesIns, timeout: Optional[float]) -> PropertiesRes:
+    def get_properties(
+        self, ins: PropertiesIns, timeout: Optional[float]
+    ) -> PropertiesRes:
         # This method is not expected to be called
         raise Exception
 

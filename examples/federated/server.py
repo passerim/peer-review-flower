@@ -1,10 +1,9 @@
 import argparse
 
 import flwr as fl
+from examples.centralized.centralized import Net
+from examples.centralized.utils import get_parameters, set_seed
 from flwr.server.strategy import FedAvg
-
-from ..centralized.centralized import Net
-from ..centralized.utils import get_parameters, set_seed
 
 SEED = 0
 

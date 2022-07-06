@@ -126,7 +126,9 @@ class TestFailingPeerReviewStrategy(unittest.TestCase):
         self.assertIsNone(res)
 
     def test_aggregate_review(self):
-        res, _ = self.strategy.aggregate_review(None, None, None, None, None, None, None)
+        res, _ = self.strategy.aggregate_review(
+            None, None, None, None, None, None, None
+        )
         self.assertIsNone(res)
 
     def test_aggregate_evaluate(self):
