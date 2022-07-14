@@ -320,7 +320,7 @@ class TestPeerReviewServer(unittest.TestCase):
         self.client_manager = SimpleClientManager()
         self.client_manager.register(client_fn())
         self.strategy = strategy_fn(
-            [proxy for client, proxy in self.client_manager.clients.items()],
+            [proxy for _, proxy in self.client_manager.clients.items()],
             review_rounds,
         )
         self.server = PeerReviewServer(self.client_manager, self.strategy)
@@ -345,21 +345,9 @@ class TestPeerReviewServer(unittest.TestCase):
             client_calls = [call[0] for call in client.client.mock_calls]
             self.assertEqual(client_calls, ["get_parameters"])
         strategy_calls = [call[0] for call in self.strategy.mock_calls]
-        print(strategy_calls)
         self.assertEqual(
             strategy_calls,
-            [
-                call
-                for call in SUCCESSFUL_STRATEGY_ROUND
-                if call
-                not in [
-                    "aggregate_train",
-                    "configure_review",
-                    "aggregate_review",
-                    "stop_review",
-                    "aggregate_evaluate",
-                ]
-            ],
+            SUCCESSFUL_STRATEGY_ROUND[:3],
         )
 
     def test_failing_review_strategy_and_failing_client(self):
@@ -378,15 +366,10 @@ class TestPeerReviewServer(unittest.TestCase):
             client_calls = [call[0] for call in client.client.mock_calls]
             self.assertEqual(client_calls, ["get_parameters", "train"])
         strategy_calls = [call[0] for call in self.strategy.mock_calls]
-        print(strategy_calls)
         self.assertTrue("aggregate_review" not in strategy_calls)
         self.assertEqual(
             strategy_calls,
-            [
-                call
-                for call in SUCCESSFUL_STRATEGY_ROUND
-                if call not in ["aggregate_review", "stop_review", "aggregate_evaluate"]
-            ],
+            SUCCESSFUL_STRATEGY_ROUND[:5],
         )
 
     def test_failing_evaluate_strategy_and_failing_client(self):
@@ -408,11 +391,7 @@ class TestPeerReviewServer(unittest.TestCase):
         self.assertTrue("aggregate_evaluate" not in strategy_calls)
         self.assertEqual(
             strategy_calls,
-            [
-                call
-                for call in SUCCESSFUL_STRATEGY_ROUND
-                if call != "aggregate_evaluate"
-            ],
+            SUCCESSFUL_STRATEGY_ROUND[:-1],
         )
 
     def test_successful_strategy_and_failing_client(self):

@@ -1,12 +1,12 @@
-import concurrent
+from concurrent import futures
 from logging import DEBUG, ERROR, INFO, WARNING
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 from flwr.common import FitRes, Parameters, Scalar
 from flwr.common.logger import log
 from flwr.common.parameter import weights_to_parameters
-from flwr.common.typing import FitIns, ParametersRes
+from flwr.common.typing import FitIns, ParametersRes, Weights
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
@@ -43,6 +43,7 @@ class PeerReviewServer(Server):
     def fit(self, num_rounds: int, timeout: Optional[float]) -> History:
         """Run federated learning with peer review for a number of rounds."""
         history = History()
+
         # Initialize parameters
         self.parameters = self.init_parameters(history, timeout)
         if self.parameters is None:
@@ -51,14 +52,17 @@ class PeerReviewServer(Server):
                 "Parameters initialization unsuccessful, terminating federated learning!",
             )
             return history
+
         # Run federated learning for num_rounds rounds
         log(INFO, "FL starting")
         timer = FitTimer().start()
         for current_round in range(1, num_rounds + 1):
+
             # Train model on clients and replace previous global model
             parameters_aggregated, metrics_aggregated = self.fit_round(
                 current_round, timeout
             )
+
             # Multiple reviews loop
             for current_review in range(1, self.max_review_rounds + 1):
                 if parameters_aggregated is not None:
@@ -69,6 +73,8 @@ class PeerReviewServer(Server):
                         metrics_aggregated=metrics_aggregated,
                         timeout=timeout,
                     )
+
+                # Check with strategy whether to stop
                 if (parameters_aggregated is None) or self.strategy.stop_review(
                     current_round,
                     current_review,
@@ -78,14 +84,25 @@ class PeerReviewServer(Server):
                     metrics_aggregated,
                 ):
                     break
+
             # Aggregate training results
+            if parameters_aggregated is None:
+                log(
+                    WARNING,
+                    """Aggregated parameters are empty!
+                    Skipping this round of federated learning""",
+                )
+                continue
             self.aggregate_parameters(
                 current_round, parameters_aggregated, metrics_aggregated
             )
+
             # Evaluate model using strategy implementation
             self.evaluate_centralized(current_round, history, timer)
+
             # Evaluate model on a sample of available clients
             self.evaluate_on_clients(current_round, history, timeout)
+
         # Bookkeeping
         log(INFO, "FL finished in %s", timer.get_elapsed())
         return history
@@ -110,7 +127,7 @@ class PeerReviewServer(Server):
         return parameters
 
     @staticmethod
-    def is_weights_type(weights: List[Any]):
+    def is_weights_type(weights: Any):
         if isinstance(weights, list):
             if all(map(lambda ndarr: isinstance(ndarr, np.ndarray), weights)):
                 return True
@@ -140,7 +157,7 @@ class PeerReviewServer(Server):
             )
             return False
         elif self.is_weights_type(parameters_prime):
-            parameters_prime = weights_to_parameters(parameters_prime)
+            parameters_prime = weights_to_parameters(cast(Weights, parameters_prime))
         elif not self.is_parameters_type(parameters_prime):
             log(
                 ERROR,
@@ -192,18 +209,6 @@ class PeerReviewServer(Server):
                     failures.append(BaseException())
         return results, failures
 
-    @staticmethod
-    def check_review(
-        results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
-    ):
-        for client, result in results:
-            if isinstance(result, FitRes):
-                metrics = result.metrics
-                if not metrics.get(PrConfig.REVIEW_FLAG):
-                    results.remove((client, result))
-                    failures.append(BaseException())
-        return results, failures
-
     def fit_round(
         self, rnd: int, timeout: Optional[float]
     ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
@@ -220,6 +225,7 @@ class PeerReviewServer(Server):
             len(client_instructions),
             self._client_manager.num_available(),
         )
+
         # Collect training results from all clients participating in this round
         results, failures = fit_clients(
             client_instructions,
@@ -233,6 +239,7 @@ class PeerReviewServer(Server):
             len(results),
             len(failures),
         )
+
         # Aggregate training results
         aggregated_result = self.strategy.aggregate_train(
             rnd=rnd,
@@ -240,12 +247,16 @@ class PeerReviewServer(Server):
             failures=failures,
             parameters=self.parameters,
         )
-        if not isinstance(aggregated_result, list) or len(aggregated_result) < 1:
+        if not isinstance(aggregated_result, list):
             log(WARNING, "Aggregated train result cannot be empty!")
             return None, []
-        else:
+        elif len(aggregated_result) > 0:
             parameters_aggregated = [res[0] for res in aggregated_result]
             metrics_aggregated = [res[1] for res in aggregated_result]
+        else:
+            log(WARNING, "Aggregated train result is empty!")
+            parameters_aggregated = []
+            metrics_aggregated = []
         return parameters_aggregated, metrics_aggregated
 
     @staticmethod
@@ -258,6 +269,18 @@ class PeerReviewServer(Server):
             return fit_ins
 
         return list(map(lambda ins: (ins[0], add_flag(ins[1])), review_instructions))
+
+    @staticmethod
+    def check_review(
+        results: List[Tuple[ClientProxy, FitRes]], failures: List[BaseException]
+    ):
+        for client, result in results:
+            if isinstance(result, FitRes):
+                metrics = result.metrics
+                if not metrics.get(PrConfig.REVIEW_FLAG):
+                    results.remove((client, result))
+                    failures.append(BaseException())
+        return results, failures
 
     def review_round(
         self,
@@ -286,6 +309,7 @@ class PeerReviewServer(Server):
             len(review_instructions),
             self._client_manager.num_available(),
         )
+
         # Collect review results from all clients participating in this round.
         results, failures = fit_clients(
             review_instructions,
@@ -299,6 +323,7 @@ class PeerReviewServer(Server):
             len(results),
             len(failures),
         )
+
         # Aggregate review results
         aggregated_result = self.strategy.aggregate_review(
             rnd=rnd,
@@ -312,14 +337,16 @@ class PeerReviewServer(Server):
         if not isinstance(review_instructions, list):
             log(WARNING, "Aggregated review result is invalid!")
             return None, []
-        elif len(aggregated_result) >= 1:
+        elif len(aggregated_result) > 0:
             parameters_aggregated = [res[0] for res in aggregated_result]
             metrics_aggregated = [res[1] for res in aggregated_result]
+        else:
+            log(WARNING, "Aggregated review result is empty!")
+            parameters_aggregated = []
+            metrics_aggregated = []
         return parameters_aggregated, metrics_aggregated
 
     def _get_initial_parameters(self, timeout: Optional[float]) -> Optional[Parameters]:
-        """Get initial parameters from one of the available clients."""
-
         # Server-side parameter initialization
         parameters: Optional[Parameters] = self.strategy.initialize_parameters(
             client_manager=self._client_manager
@@ -340,19 +367,13 @@ def get_parameters_from_client(
     random_client: ClientProxy,
     timeout: Optional[float],
 ) -> Optional[ParametersRes]:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with futures.ThreadPoolExecutor(max_workers=1) as executor:
         submitted_fs = {
             executor.submit(lambda: random_client.get_parameters(timeout=timeout))
         }
-        finished_fs, _ = concurrent.futures.wait(
+        finished_fs, _ = futures.wait(
             fs=submitted_fs,
             timeout=None,  # Handled in the respective communication stack
         )
     future = finished_fs.pop()
-    failure = future.exception()
-    if failure is not None:
-        return None
-    else:
-        # Success case
-        result = future.result()
-        return result
+    return future.result() if not future.exception() else None
