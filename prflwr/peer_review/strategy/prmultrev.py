@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
@@ -12,13 +12,13 @@ class MultipleReviewStrategy(Strategy):
 
     @abstractmethod
     def configure_train(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         """Configure the next round of federated training of the global model.
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
         parameters : Parameters
             The current (global) model parameters.
@@ -37,16 +37,16 @@ class MultipleReviewStrategy(Strategy):
     @abstractmethod
     def aggregate_train(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         """Aggregate training results of the current round of federated learning.
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
         results : List[Tuple[ClientProxy, FitRes]]
             Successful model updates from the previously selected and configured
@@ -55,7 +55,7 @@ class MultipleReviewStrategy(Strategy):
             all previously selected clients are necessarily included in this list:
             a client might drop out and not submit a result. For each client that
             did not submit an update, there should be an `Exception` in `failures`.
-        failures : List[BaseException]
+        failures : List[Union[Tuple[ClientProxy, FitRes], BaseException]]
             Exceptions that occurred while the server was waiting for client
             updates.
         parameters : Optional[Parameters]
@@ -75,8 +75,8 @@ class MultipleReviewStrategy(Strategy):
     @abstractmethod
     def configure_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -86,9 +86,9 @@ class MultipleReviewStrategy(Strategy):
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
-        review_rnd : int
+        review_round : int
             The current review round.
         parameters : Parameters
             The current (global) model parameters.
@@ -114,10 +114,10 @@ class MultipleReviewStrategy(Strategy):
     @abstractmethod
     def aggregate_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
@@ -126,9 +126,9 @@ class MultipleReviewStrategy(Strategy):
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
-        review_rnd : int
+        review_round : int
             The current review round.
         results : List[Tuple[ClientProxy, FitRes]]
             Successful reviews from the previously selected and configured clients.
@@ -137,7 +137,7 @@ class MultipleReviewStrategy(Strategy):
             selected clients are necessarily included in this list: a client might
             drop out and not submit a result. For each client that did not submit
             an update, there should be an `Exception` in `failures`.
-        failures : List[BaseException]
+        failures : List[Union[Tuple[ClientProxy, FitRes], BaseException]]
             Exceptions that occurred while the server was waiting for client
             updates.
         parameters : Parameters
@@ -164,7 +164,7 @@ class MultipleReviewStrategy(Strategy):
     @abstractmethod
     def aggregate_after_review(
         self,
-        rnd: int,
+        server_round: int,
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
@@ -173,7 +173,7 @@ class MultipleReviewStrategy(Strategy):
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
         parameters : Optional[Parameters]
             The current (global) model parameters.
@@ -199,8 +199,8 @@ class MultipleReviewStrategy(Strategy):
     @abstractmethod
     def stop_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -210,9 +210,9 @@ class MultipleReviewStrategy(Strategy):
 
         Parameters
         ----------
-        rnd : int
+        server_round : int
             The current round of federated learning.
-        review_rnd : int
+        review_round : int
             The current review round.
         parameters : Parameters
             The current (global) model parameters.

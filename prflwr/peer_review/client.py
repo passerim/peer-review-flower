@@ -1,9 +1,8 @@
 from abc import abstractmethod
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
-import numpy as np
 from flwr.client import NumPyClient
-from flwr.common import Scalar
+from flwr.common import NDArrays, Scalar
 from overrides import overrides
 from prflwr.peer_review.config import PrConfig
 
@@ -15,13 +14,13 @@ class PeerReviewClient(NumPyClient):
 
     @abstractmethod
     def review(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         """Review the provided weights using the locally stored dataset.
 
         Parameters
         ----------
-        parameters : List[np.ndarray]
+        parameters : NDArrays
             The current (global) model parameters.
         config : Dict[str, Scalar]
             Configuration parameters which allow the server to influence reviewing
@@ -30,7 +29,7 @@ class PeerReviewClient(NumPyClient):
 
         Returns
         -------
-        parameters : List[numpy.ndarray]
+        parameters : NDArrays
             The locally updated model parameters.
         num_examples : int
             The number of examples used for reviewing.
@@ -42,13 +41,13 @@ class PeerReviewClient(NumPyClient):
 
     @abstractmethod
     def train(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         """Train the provided parameters using the locally stored dataset.
 
         Parameters
         ----------
-        parameters : List[numpy.ndarray]
+        parameters : NDArrays
             The current (global) model parameters.
         config : Dict[str, Scalar]
             Configuration parameters which allow the server to influence training
@@ -57,7 +56,7 @@ class PeerReviewClient(NumPyClient):
 
         Returns
         -------
-        parameters : List[numpy.ndarray]
+        parameters : NDArrays
             The locally updated model parameters.
         num_examples : int
             The number of examples used for training.
@@ -69,8 +68,8 @@ class PeerReviewClient(NumPyClient):
 
     @overrides
     def fit(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         is_review = config.get(PrConfig.REVIEW_FLAG)
         if is_review:
             parameters, num_examples, metrics = self.review(parameters, config)

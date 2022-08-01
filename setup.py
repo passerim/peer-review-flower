@@ -1,7 +1,8 @@
 """ See https://packaging.python.org/guides/distributing-packages-using-setuptools
 """
-from setuptools import setup, find_packages
 import pathlib
+
+from setuptools import find_packages, setup
 
 here = pathlib.Path(__file__).parent.resolve()
 
@@ -25,7 +26,7 @@ setup(
     version="0.1.0",  # Required
     # This is a one-line description or tagline of what your project does.
     #
-    description="Federated Learning with Peer Review using Flower",  # Optional
+    description="Peer Review Flower: Federated Learning with Peer Review using Flower",  # Optional
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
     #
@@ -35,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",  # Optional (see note above)
     # This should be a valid link to your project's main homepage.
     #
-    url="https://gitlab.com/pika-lab/courses/ds/projects/ds-project-passeri-ay2122",  # Optional
+    url="https://github.com/passerim/peer-reviewed-flower",  # Optional
     # This should be your name or the name of the organization which owns the
     # project.
     #
@@ -69,7 +70,7 @@ setup(
     # installed, so they must be valid existing projects.
     #
     install_requires=[
-        "flwr[simulation]==0.19",
+        "flwr[simulation]==1.0.0",
         "numpy",
         "overrides",
     ],  # Optional

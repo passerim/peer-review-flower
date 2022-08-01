@@ -1,10 +1,11 @@
 import unittest
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from unittest.mock import MagicMock
 
 from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
+from overrides import overrides
 from prflwr.peer_review.strategy import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
@@ -24,24 +25,27 @@ class FailingStrategy(PeerReviewStrategy):
     def __init__(self):
         super(FailingStrategy, self).__init__()
 
+    @overrides
     def configure_train(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
         raise ConfigureTrainException
 
+    @overrides
     def aggregate_train(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateTrainException
 
+    @overrides
     def configure_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -49,31 +53,34 @@ class FailingStrategy(PeerReviewStrategy):
     ) -> List[Tuple[ClientProxy, FitIns]]:
         raise ConfigureReviewException
 
+    @overrides
     def aggregate_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateReviewException
 
+    @overrides
     def aggregate_after_review(
         self,
-        rnd: int,
+        server_round: int,
+        parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
-        parameters: Optional[Parameters] = None,
     ) -> Optional[Parameters]:
         raise AggregateAfterReviewException
 
+    @overrides
     def stop_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -81,26 +88,30 @@ class FailingStrategy(PeerReviewStrategy):
     ) -> bool:
         raise StopReviewException
 
+    @overrides
     def initialize_parameters(
         self, client_manager: ClientManager
     ) -> Optional[Parameters]:
         raise InitializeParametersException
 
+    @overrides
     def configure_evaluate(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, EvaluateIns]]:
         raise ConfigureEvaluateException
 
+    @overrides
     def aggregate_evaluate(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, EvaluateRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]],
     ) -> Tuple[Optional[float], Dict[str, Scalar]]:
         raise AggregateEvaluateException
 
+    @overrides
     def evaluate(
-        self, parameters: Parameters
+        self, server_round: int, parameters: Parameters
     ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
         raise EvaluateException
 
@@ -140,7 +151,7 @@ class TestFailingPeerReviewStrategy(unittest.TestCase):
         self.assertTrue(res)
 
     def test_evaluate(self):
-        res = self.strategy.evaluate(None)
+        res = self.strategy.evaluate(None, None)
         self.assertIsNone(res)
 
     def test_aggregate_after_review(self):

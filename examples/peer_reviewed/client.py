@@ -22,14 +22,14 @@ class CifarClient(PeerReviewClient):
         self.trainloader = trainloader
         self.testloader = testloader
 
-    def get_parameters(self):
+    def get_parameters(self, config):
         return get_parameters(self.model)
 
     def train(self, parameters, config):
         set_parameters(self.model, parameters)
         epochs = 1
         if config.get("num_epochs") and isinstance(config.get("num_epochs"), int):
-            epochs = config.get["num_epochs"]
+            epochs = config.get("num_epochs")
         train(self.model, self.trainloader, epochs=epochs, device=DEVICE)
         return get_parameters(self.model), len(self.trainloader.dataset), {}
 
@@ -75,7 +75,8 @@ def setup_client(
 
     # Start client
     fl.client.start_numpy_client(
-        f"localhost:{port}", client=CifarClient(net, trainloader, testloader)
+        server_address=f"localhost:{port}",
+        client=CifarClient(net, trainloader, testloader),
     )
 
 

@@ -3,6 +3,8 @@ import argparse
 import flwr as fl
 from examples.centralized.centralized import Net
 from examples.centralized.utils import get_parameters, set_seed
+from flwr.common import logger, ndarrays_to_parameters
+from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
 from prflwr.peer_review.server import PeerReviewServer
 from prflwr.peer_review.strategy.fedavg import PeerReviewedFedAvg
@@ -18,17 +20,17 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
     strategy = PeerReviewedFedAvg(
         fraction_fit=1.0,
         fraction_review=1.0,
-        fraction_eval=1.0,
+        fraction_evaluate=1.0,
         min_fit_clients=2,
         min_review_clients=2,
-        min_eval_clients=2,
+        min_evaluate_clients=2,
         min_available_clients=2,
-        initial_parameters=fl.common.weights_to_parameters(params),
+        initial_parameters=ndarrays_to_parameters(params),
     )
 
     # Set up logging if a log file is specified
     if logging_file:
-        fl.common.logger.configure("server", filename=logging_file)
+        logger.configure("server", filename=logging_file)
 
     # Start server
     fl.server.start_server(
@@ -36,7 +38,7 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
-        config={"num_rounds": num_rounds},
+        config=ServerConfig(num_rounds=num_rounds),
     )
 
 

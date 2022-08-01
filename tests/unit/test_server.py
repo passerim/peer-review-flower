@@ -8,20 +8,28 @@ from flwr.common import (
     EvaluateRes,
     FitIns,
     FitRes,
-    ParametersRes,
-    PropertiesIns,
-    PropertiesRes,
-    parameters_to_weights,
-    weights_to_parameters,
+    ndarrays_to_parameters,
+    parameters_to_ndarrays,
 )
-from flwr.common.typing import Disconnect, Reconnect
+from flwr.common.typing import (
+    Code,
+    DisconnectRes,
+    GetParametersIns,
+    GetParametersRes,
+    GetPropertiesIns,
+    GetPropertiesRes,
+    ReconnectIns,
+    Status,
+)
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy.fedavg import FedAvg
+from overrides import overrides
 from prflwr.peer_review import PeerReviewClient, PeerReviewServer, PrConfig
 from prflwr.peer_review.strategy import PeerReviewStrategy
 from tests.unit.test_strategy import FailingStrategy
 
+OK_STATUS = Status(code=Code.OK, message="")
 TEST_VALUE = 42
 TEST_ROUNDS = 1
 TEST_CID = "0"
@@ -79,26 +87,75 @@ class ClientProxyAdapter(ClientProxy):
         super().__init__(cid)
         self.client: PeerReviewClient = client
 
+    @overrides
     def get_properties(
-        self, ins: PropertiesIns, timeout: Optional[float]
-    ) -> PropertiesRes:
+        self, ins: GetPropertiesIns, timeout: Optional[float]
+    ) -> GetPropertiesRes:
+        # This method is not expected to be called
         raise NotImplementedError
 
-    def get_parameters(self, timeout: Optional[float]) -> ParametersRes:
-        return self.client.get_parameters()
+    @overrides
+    def get_parameters(
+        self, ins: GetParametersIns, timeout: Optional[float]
+    ) -> GetParametersRes:
+        return GetParametersRes(
+            status=OK_STATUS,
+            parameters=ndarrays_to_parameters(self.client.get_parameters({})),
+        )
 
+    @overrides
     def fit(self, ins: FitIns, timeout: Optional[float]) -> FitRes:
         is_review = ins.config.get(PrConfig.REVIEW_FLAG)
         if is_review:
-            return self.client.review(parameters_to_weights(ins.parameters), ins.config)
+            return FitRes(
+                status=OK_STATUS,
+                *self.client.review(parameters_to_ndarrays(ins.parameters), ins.config)
+            )
         else:
-            return self.client.train(parameters_to_weights(ins.parameters), ins.config)
+            return FitRes(
+                status=OK_STATUS,
+                *self.client.train(parameters_to_ndarrays(ins.parameters), ins.config)
+            )
 
+    @overrides
     def evaluate(self, ins: EvaluateIns, timeout: Optional[float]) -> EvaluateRes:
-        return self.client.evaluate(parameters_to_weights(ins.parameters), ins.config)
+        return EvaluateRes(
+            status=OK_STATUS,
+            *self.client.evaluate(parameters_to_ndarrays(ins.parameters), ins.config)
+        )
 
-    def reconnect(self, reconnect: Reconnect, timeout: Optional[float]) -> Disconnect:
+    @overrides
+    def reconnect(self, ins: ReconnectIns, timeout: Optional[float]) -> DisconnectRes:
+        # This method is not expected to be called
         raise NotImplementedError
+
+
+def get_parameters_mock() -> MagicMock:
+    return MagicMock(return_value=[TEST_ARRAY])
+
+
+def train_mock() -> MagicMock:
+    return MagicMock(
+        return_value=(
+            [TEST_ARRAY],
+            0,
+            {PrConfig.REVIEW_FLAG: False},
+        )
+    )
+
+
+def review_mock() -> MagicMock:
+    return MagicMock(
+        return_value=(
+            [TEST_ARRAY],
+            0,
+            {PrConfig.REVIEW_FLAG: True},
+        )
+    )
+
+
+def evaluate_mock() -> MagicMock:
+    return MagicMock(return_value=(1, 0, {}))
 
 
 def failing_client():
@@ -112,9 +169,7 @@ def failing_client():
 
 def failing_train_client():
     client = MagicMock(spec=PeerReviewClient)
-    client.get_parameters = MagicMock(
-        return_value=ParametersRes(parameters=weights_to_parameters([TEST_ARRAY]))
-    )
+    client.get_parameters = get_parameters_mock()
     client.train = MagicMock(side_effect=Exception)
     client.review = MagicMock(side_effect=Exception)
     client.evaluate = MagicMock(side_effect=Exception)
@@ -123,16 +178,8 @@ def failing_train_client():
 
 def failing_review_client():
     client = MagicMock(spec=PeerReviewClient)
-    client.get_parameters = MagicMock(
-        return_value=ParametersRes(parameters=weights_to_parameters([TEST_ARRAY]))
-    )
-    client.train = MagicMock(
-        return_value=FitRes(
-            parameters=weights_to_parameters([TEST_ARRAY]),
-            num_examples=0,
-            metrics={PrConfig.REVIEW_FLAG: False},
-        )
-    )
+    client.get_parameters = get_parameters_mock()
+    client.train = train_mock()
     client.review = MagicMock(side_effect=Exception)
     client.evaluate = MagicMock(side_effect=NotImplementedError)
     return ClientProxyAdapter(TEST_CID, client)
@@ -140,53 +187,19 @@ def failing_review_client():
 
 def failing_evaluate_client():
     client = MagicMock(spec=PeerReviewClient)
-    client.get_parameters = MagicMock(
-        return_value=ParametersRes(parameters=weights_to_parameters([TEST_ARRAY]))
-    )
-    client.train = MagicMock(
-        return_value=FitRes(
-            parameters=weights_to_parameters([TEST_ARRAY]),
-            num_examples=0,
-            metrics={PrConfig.REVIEW_FLAG: False},
-        )
-    )
-    client.review = MagicMock(
-        return_value=FitRes(
-            parameters=weights_to_parameters([TEST_ARRAY]),
-            num_examples=0,
-            metrics={PrConfig.REVIEW_FLAG: True},
-        )
-    )
+    client.get_parameters = get_parameters_mock()
+    client.train = train_mock()
+    client.review = review_mock()
     client.evaluate = MagicMock(side_effect=NotImplementedError)
     return ClientProxyAdapter(TEST_CID, client)
 
 
 def successful_client():
     client = MagicMock(spec=PeerReviewClient)
-    client.get_parameters = MagicMock(
-        return_value=ParametersRes(parameters=weights_to_parameters([TEST_ARRAY]))
-    )
-    client.train = MagicMock(
-        return_value=FitRes(
-            parameters=weights_to_parameters([TEST_ARRAY]),
-            num_examples=0,
-            metrics={PrConfig.REVIEW_FLAG: False},
-        )
-    )
-    client.review = MagicMock(
-        return_value=FitRes(
-            parameters=weights_to_parameters([TEST_ARRAY]),
-            num_examples=0,
-            metrics={PrConfig.REVIEW_FLAG: True},
-        )
-    )
-    client.evaluate = MagicMock(
-        return_value=EvaluateRes(
-            loss=1,
-            num_examples=0,
-            metrics={},
-        )
-    )
+    client.get_parameters = get_parameters_mock()
+    client.train = train_mock()
+    client.review = review_mock()
+    client.evaluate = evaluate_mock()
     return ClientProxyAdapter(TEST_CID, client)
 
 
@@ -196,7 +209,7 @@ def configure_train_mock(clients: List[ClientProxy]):
             (
                 client,
                 FitIns(
-                    parameters=weights_to_parameters([TEST_ARRAY]),
+                    parameters=ndarrays_to_parameters([TEST_ARRAY]),
                     config={PrConfig.REVIEW_FLAG: False},
                 ),
             )
@@ -211,7 +224,7 @@ def configure_review_mock(clients: List[ClientProxy]):
             (
                 client,
                 FitIns(
-                    parameters=weights_to_parameters([TEST_ARRAY]),
+                    parameters=ndarrays_to_parameters([TEST_ARRAY]),
                     config={PrConfig.REVIEW_FLAG: True},
                 ),
             )
@@ -225,7 +238,7 @@ def configure_evaluate_mock(clients: List[ClientProxy]):
         return_value=[
             (
                 client,
-                EvaluateIns(parameters=weights_to_parameters([TEST_ARRAY]), config={}),
+                EvaluateIns(parameters=ndarrays_to_parameters([TEST_ARRAY]), config={}),
             )
             for client in clients
         ]
@@ -286,9 +299,9 @@ def failing_evaluate_strategy(clients: List[ClientProxy] = None, *args):
 
 
 def successful_strategy(clients: List[ClientProxy] = None, review_rounds: int = 1):
-    def stop_review(rnd, review_rnd, *args):
-        if review_rnd >= review_rounds:
-            return True if review_rnd >= review_rounds else False
+    def stop_review(server_round, review_round, *args):
+        if review_round >= review_rounds:
+            return True if review_round >= review_rounds else False
 
     if clients is None:
         clients = []
@@ -424,7 +437,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
 
     def test_is_parameters_type(self):
         self.assertTrue(
-            PeerReviewServer.is_parameters_type(weights_to_parameters([TEST_ARRAY]))
+            PeerReviewServer.is_parameters_type(ndarrays_to_parameters([TEST_ARRAY]))
         )
         self.assertFalse(PeerReviewServer.is_weights_type(TEST_ARRAY))
         self.assertFalse(PeerReviewServer.is_parameters_type([i for i in range(10)]))
@@ -435,13 +448,14 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             (
                 successful_client(),
                 FitRes(
+                    status=OK_STATUS,
                     parameters=None,
                     num_examples=0,
                     metrics={PrConfig.REVIEW_FLAG: False},
                 ),
             )
         ]
-        failures = [BaseException]
+        failures = [BaseException()]
         results, failures = PeerReviewServer.check_train(results, failures)
         self.assertEqual(len(results), 1)
         self.assertEqual(len(failures), 1)
@@ -449,6 +463,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             (
                 successful_client(),
                 FitRes(
+                    status=OK_STATUS,
                     parameters=None,
                     num_examples=0,
                     metrics={PrConfig.REVIEW_FLAG: True},
@@ -464,13 +479,14 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             (
                 successful_client(),
                 FitRes(
+                    status=OK_STATUS,
                     parameters=None,
                     num_examples=0,
                     metrics={PrConfig.REVIEW_FLAG: True},
                 ),
             )
         ]
-        failures = [BaseException]
+        failures = [BaseException()]
         results, failures = PeerReviewServer.check_review(results, failures)
         self.assertEqual(len(results), 1)
         self.assertEqual(len(failures), 1)
@@ -478,6 +494,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             (
                 successful_client(),
                 FitRes(
+                    status=OK_STATUS,
                     parameters=None,
                     num_examples=0,
                     metrics={PrConfig.REVIEW_FLAG: False},

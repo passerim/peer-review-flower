@@ -24,5 +24,8 @@ experiments/fedes/data
 
 # My utility files and directories
 .NOTES
-doc/*.md
+doc/report
 *__copy__*
+
+# License
+LICENSE

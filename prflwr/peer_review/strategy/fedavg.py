@@ -1,13 +1,13 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from flwr.common import (
     FitIns,
     FitRes,
+    NDArrays,
     Parameters,
     Scalar,
-    Weights,
-    parameters_to_weights,
-    weights_to_parameters,
+    ndarrays_to_parameters,
+    parameters_to_ndarrays,
 )
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
@@ -30,13 +30,16 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         self,
         fraction_fit: float = 0.1,
         fraction_review: float = 0.1,
-        fraction_eval: float = 0.1,
+        fraction_evaluate: float = 0.1,
         min_fit_clients: int = 2,
         min_review_clients: int = 2,
-        min_eval_clients: int = 2,
+        min_evaluate_clients: int = 2,
         min_available_clients: int = 2,
-        eval_fn: Optional[
-            Callable[[Weights], Optional[Tuple[float, Dict[str, Scalar]]]]
+        evaluate_fn: Optional[
+            Callable[
+                [int, NDArrays, Dict[str, Scalar]],
+                Optional[Tuple[float, Dict[str, Scalar]]],
+            ]
         ] = None,
         on_fit_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
         on_review_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
@@ -50,15 +53,20 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         ----------
         fraction_fit : float, optional
             Fraction of clients used during training. Defaults to 0.1.
-        fraction_eval : float, optional
+        fraction_evaluate : float, optional
             Fraction of clients used during validation. Defaults to 0.1.
         min_fit_clients : int, optional
             Minimum number of clients used during training. Defaults to 2.
-        min_eval_clients : int, optional
+        min_evaluate_clients : int, optional
             Minimum number of clients used during validation. Defaults to 2.
         min_available_clients : int, optional
             Minimum number of total clients in the system. Defaults to 2.
-        eval_fn : Callable[[Weights], Optional[Tuple[float, Dict[str, Scalar]]]]
+        evaluate_fn : Optional[
+            Callable[
+                [int, NDArrays, Dict[str, Scalar]],
+                Optional[Tuple[float, Dict[str, Scalar]]]
+            ]
+        ]
             Optional function used for validation. Defaults to None.
         on_fit_config_fn : Callable[[int], Dict[str, Scalar]], optional
             Function used to configure training. Defaults to None.
@@ -70,16 +78,16 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             Initial global model parameters.
         """
         super().__init__(
-            fraction_fit,
-            fraction_eval,
-            min_fit_clients,
-            min_eval_clients,
-            min_available_clients,
-            eval_fn,
-            on_fit_config_fn,
-            on_evaluate_config_fn,
-            accept_failures,
-            initial_parameters,
+            fraction_fit=fraction_fit,
+            fraction_evaluate=fraction_evaluate,
+            min_fit_clients=min_fit_clients,
+            min_evaluate_clients=min_evaluate_clients,
+            min_available_clients=min_available_clients,
+            evaluate_fn=evaluate_fn,
+            on_fit_config_fn=on_fit_config_fn,
+            on_evaluate_config_fn=on_evaluate_config_fn,
+            accept_failures=accept_failures,
+            initial_parameters=initial_parameters,
         )
         self.fraction_review = fraction_review
         self.min_review_clients = min_review_clients
@@ -91,25 +99,25 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
 
     @overrides
     def configure_train(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
-        return super().configure_fit(rnd, parameters, client_manager)
+        return super().configure_fit(server_round, parameters, client_manager)
 
     @overrides
     def aggregate_train(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
-        return [super().aggregate_fit(rnd, results, failures)]
+        return [super().aggregate_fit(server_round, results, failures)]
 
     @overrides
     def configure_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
@@ -121,7 +129,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         # Use custom review config function if provided
         config = {}
         if self.on_review_config_fn is not None:
-            config = self.on_review_config_fn(rnd)
+            config = self.on_review_config_fn(server_round)
         # Sample clients
         sample_size, min_num_clients = self.num_fit_clients(
             client_manager.num_available()
@@ -140,10 +148,10 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     @overrides
     def aggregate_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
@@ -157,16 +165,16 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         # Aggregate review round results
         aggregated_result = aggregate(
             [
-                (parameters_to_weights(result.parameters), result.num_examples)
+                (parameters_to_ndarrays(result.parameters), result.num_examples)
                 for _, result in results
             ]
         )
-        return [(weights_to_parameters(aggregated_result), {})]
+        return [(ndarrays_to_parameters(aggregated_result), {})]
 
     @overrides
     def aggregate_after_review(
         self,
-        rnd: int,
+        server_round: int,
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
@@ -176,8 +184,8 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     @overrides
     def stop_review(
         self,
-        rnd: int,
-        review_rnd: int,
+        server_round: int,
+        review_round: int,
         parameters: Parameters,
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],

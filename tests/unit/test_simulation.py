@@ -1,51 +1,54 @@
 import unittest
-from typing import Optional
 
 import numpy as np
+from flwr.client import Client
 from flwr.common import (
-    Disconnect,
+    Code,
     EvaluateIns,
     EvaluateRes,
     FitIns,
     FitRes,
+    GetParametersIns,
+    GetParametersRes,
+    GetPropertiesIns,
+    GetPropertiesRes,
     Parameters,
-    ParametersRes,
-    PropertiesIns,
-    PropertiesRes,
-    Reconnect,
+    Status,
     ndarray_to_bytes,
 )
+from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
-from flwr.server.client_proxy import ClientProxy
+from flwr.simulation import start_simulation
+from overrides import overrides
 from prflwr.peer_review import PeerReviewServer
 from prflwr.peer_review.strategy import PeerReviewedFedAvg, PeerReviewStrategy
-from prflwr.simulation import start_simulation
+
+OK_STATUS = Status(Code.OK, "")
 
 
-class NamedSimulationClient(ClientProxy):
-    def __init__(self, cid: str):
-        super().__init__(cid)
+class NamedSimulationClient(Client):
+    def __init__(self):
         arr = np.array([[1, 2], [3, 4], [5, 6]])
         arr_serialized = ndarray_to_bytes(arr)
         self.parameters = Parameters(tensors=[arr_serialized], tensor_type="")
 
-    def get_properties(
-        self, ins: PropertiesIns, timeout: Optional[float]
-    ) -> PropertiesRes:
+    @overrides
+    def get_properties(self, ins: GetPropertiesIns) -> GetPropertiesRes:
         # This method is not expected to be called
         raise Exception
 
-    def get_parameters(self, timeout: Optional[float]) -> ParametersRes:
-        return ParametersRes(self.parameters)
+    @overrides
+    def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
+        return GetParametersRes(OK_STATUS, self.parameters)
 
-    def fit(self, ins: FitIns, timeout: Optional[float]) -> FitRes:
-        return FitRes(self.get_parameters(None).parameters, 0, {})
+    @overrides
+    def fit(self, ins: FitIns) -> FitRes:
+        return FitRes(
+            OK_STATUS, self.get_parameters(GetParametersIns({})).parameters, 0, {}
+        )
 
-    def evaluate(self, ins: EvaluateIns, timeout: Optional[float]) -> EvaluateRes:
-        # This method is not expected to be called
-        raise Exception
-
-    def reconnect(self, reconnect: Reconnect, timeout: Optional[float]) -> Disconnect:
+    @overrides
+    def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # This method is not expected to be called
         raise Exception
 
@@ -57,23 +60,23 @@ class TestSimulationWithPrServer(unittest.TestCase):
         strategy = PeerReviewedFedAvg(
             fraction_review=1.0,
             fraction_fit=1.0,
-            fraction_eval=1.0,
+            fraction_evaluate=1.0,
             min_fit_clients=2,
-            min_eval_clients=2,
+            min_evaluate_clients=2,
             min_available_clients=2,
         )
         self.assertIsInstance(strategy, PeerReviewStrategy)
 
-        # Define server and assert it is a sublass of PeerReviewServer
+        # Define server and assert it is a subclass of PeerReviewServer
         client_manager = SimpleClientManager()
         server = PeerReviewServer(client_manager=client_manager, strategy=strategy)
         self.assertIsInstance(server, PeerReviewServer)
 
         # Start simulation and assert a value for hist is actually returned
         hist = start_simulation(
-            client_fn=lambda cid: NamedSimulationClient(cid),
+            client_fn=lambda cid: NamedSimulationClient(),
             num_clients=1,
-            num_rounds=0,
+            config=ServerConfig(num_rounds=0),
             strategy=strategy,
             server=server,
             client_manager=client_manager,

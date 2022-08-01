@@ -1,6 +1,6 @@
 from abc import ABC
 from functools import wraps
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from flwr.common import FitIns, FitRes, Parameters, Scalar
 from flwr.server.client_manager import ClientManager
@@ -81,15 +81,15 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
 
     @overrides
     def configure_fit(
-        self, rnd: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ) -> List[Tuple[ClientProxy, FitIns]]:
-        return self.configure_train(rnd, parameters, client_manager)
+        return self.configure_train(server_round, parameters, client_manager)
 
     @overrides
     def aggregate_fit(
         self,
-        rnd: int,
+        server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[BaseException],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
-        return self.aggregate_train(rnd, results, failures).pop()
+        return self.aggregate_train(server_round, results, failures).pop()

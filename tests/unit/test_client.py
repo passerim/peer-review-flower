@@ -1,55 +1,59 @@
 import unittest
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple
 
 import numpy as np
-from flwr.common.typing import Config, Properties, Scalar
+from flwr.common.typing import Config, NDArrays, Properties, Scalar
+from overrides import overrides
 from prflwr.peer_review import PeerReviewClient, PrConfig
 
 
 class FailingClient(PeerReviewClient):
     """A client which always fails - raises Exception or NotImplementedError upon any method call."""
 
+    @overrides
     def get_properties(self, config: Config) -> Properties:
         raise NotImplementedError
 
-    def get_parameters(self) -> List[np.ndarray]:
+    @overrides
+    def get_parameters(self, config: Dict[str, Scalar]) -> NDArrays:
         raise NotImplementedError
 
+    @overrides
     def train(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         raise Exception
 
+    @overrides
     def review(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         raise Exception
 
+    @overrides
     def evaluate(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Union[
-        Tuple[float, int, Dict[str, Scalar]],
-        Tuple[int, float, float],
-        Tuple[int, float, float, Dict[str, Scalar]],
-    ]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[float, int, Dict[str, Scalar]]:
         raise Exception
 
 
 class ClientTrain(FailingClient):
     """A client with a train method implementation."""
 
+    @overrides
     def train(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         return parameters, 0, {}
 
 
 class ClientReview(FailingClient):
     """A client with a review method implementation."""
 
+    @overrides
     def review(
-        self, parameters: List[np.ndarray], config: Dict[str, Scalar]
-    ) -> Tuple[List[np.ndarray], int, Dict[str, Scalar]]:
+        self, parameters: NDArrays, config: Dict[str, Scalar]
+    ) -> Tuple[NDArrays, int, Dict[str, Scalar]]:
         return parameters, 0, {PrConfig.REVIEW_SCORE: 1}
 
 

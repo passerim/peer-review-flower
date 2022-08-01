@@ -5,10 +5,12 @@ import flwr as fl
 from examples.centralized.centralized import Net, load_data
 from examples.centralized.utils import get_parameters, set_seed
 from examples.peer_reviewed.client import CifarClient
+from flwr.common import logger, ndarrays_to_parameters
+from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
+from flwr.simulation import start_simulation
 from prflwr.peer_review.server import PeerReviewServer
 from prflwr.peer_review.strategy import PeerReviewedFedAvg
-from prflwr.simulation.app import start_simulation
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -44,25 +46,25 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
     strategy = PeerReviewedFedAvg(
         fraction_review=1.0,
         fraction_fit=1.0,
-        fraction_eval=1.0,
+        fraction_evaluate=1.0,
         min_fit_clients=2,
-        min_eval_clients=2,
+        min_evaluate_clients=2,
         min_available_clients=2,
-        initial_parameters=fl.common.weights_to_parameters(params),
+        initial_parameters=ndarrays_to_parameters(params),
     )
 
     # Set up logging if a log file is specified
     if logging_file:
-        fl.common.logger.configure("server", filename=logging_file)
+        logger.configure("server", filename=logging_file)
 
     # Start simulation
     hist = start_simulation(
         client_fn=partial(client_fn, num_clients=num_clients),
         num_clients=num_clients,
-        num_rounds=num_rounds,
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
+        config=ServerConfig(num_rounds=num_rounds),
         client_resources={"num_cpus": 1, "num_gpus": 1},
         ray_init_args={"local_mode": True, "include_dashboard": False},
     )
