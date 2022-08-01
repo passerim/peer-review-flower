@@ -6,7 +6,7 @@ from numpy.random.bit_generator import BitGenerator, SeedSequence
 Dataset = Tuple[np.ndarray, np.ndarray]
 
 
-def non_idd_partitions(
+def non_iid_partitions(
     dataset: Dataset,
     num_partitions: int,
     concentration: float,

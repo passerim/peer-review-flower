@@ -1,7 +1,7 @@
-from .dataset import non_idd_partitions
+from .dataset import non_iid_partitions
 from .timer import FitTimer
 
 __all__ = [
     "FitTimer",
-    "non_idd_partitions",
+    "non_iid_partitions",
 ]

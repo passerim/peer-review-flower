@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from prflwr.utils import non_idd_partitions
+from prflwr.utils import non_iid_partitions
 
 CONCENTRATION = 1
 NUM_CLASSES = 10
@@ -16,7 +16,7 @@ class TestDataset(unittest.TestCase):
         self.dataset = [idxs, targets]
 
     def test_correct_split(self):
-        partitions = non_idd_partitions(self.dataset, NUM_PARTITIONS, CONCENTRATION)
+        partitions = non_iid_partitions(self.dataset, NUM_PARTITIONS, CONCENTRATION)
         self.assertIsInstance(partitions, list)
         self.assertEqual(len(partitions), NUM_PARTITIONS)
         self.assertEqual(
@@ -24,7 +24,7 @@ class TestDataset(unittest.TestCase):
         )
 
     def test_less_samples_than_partitions(self):
-        partitions = non_idd_partitions(
+        partitions = non_iid_partitions(
             (
                 self.dataset[0][: NUM_PARTITIONS - 1],
                 self.dataset[1][: NUM_PARTITIONS - 1],

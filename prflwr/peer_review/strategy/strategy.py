@@ -1,3 +1,4 @@
+import sys
 from abc import ABC
 from functools import wraps
 from typing import Dict, List, Optional, Tuple, Union
@@ -75,7 +76,10 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
                 elif isinstance(e, InitializeParametersException):
                     return None
                 else:
-                    raise TypeError
+                    exc = sys.exc_info()[0]
+                    raise TypeError(
+                        f"Cannot catch error or exception of type: {exc.__name__}"
+                    )
 
         return handle
 
