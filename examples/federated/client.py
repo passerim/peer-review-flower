@@ -2,10 +2,11 @@ import argparse
 
 import flwr as fl
 import torch
-from examples.centralized.centralized import Net, load_data, test, train
-from examples.centralized.utils import get_parameters, set_parameters, set_seed
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
+
+from examples.centralized.centralized import Net, load_data, test, train
+from examples.centralized.utils import get_parameters, set_parameters, set_seed
 
 SEED = 0
 BATCH_SIZE = 32

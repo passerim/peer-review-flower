@@ -2,17 +2,18 @@ import argparse
 from functools import partial
 
 import flwr as fl
-from examples.centralized.centralized import Net, load_data
-from examples.centralized.utils import get_parameters, set_seed
-from examples.peer_reviewed.client import CifarClient
 from flwr.common import logger, ndarrays_to_parameters
 from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
 from flwr.simulation import start_simulation
-from prflwr.peer_review.server import PeerReviewServer
-from prflwr.peer_review.strategy import PeerReviewedFedAvg
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+
+from examples.centralized.centralized import Net, load_data
+from examples.centralized.utils import get_parameters, set_seed
+from examples.peer_reviewed.client import CifarClient
+from prflwr.peer_review.server import PeerReviewServer
+from prflwr.peer_review.strategy import PeerReviewedFedAvg
 
 SEED = 0
 BATCH_SIZE = 32

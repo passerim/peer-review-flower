@@ -1,5 +1,5 @@
-from .dataset import non_iid_partitions
-from .timer import FitTimer
+from prflwr.utils.dataset import non_iid_partitions
+from prflwr.utils.timer import FitTimer
 
 __all__ = [
     "FitTimer",

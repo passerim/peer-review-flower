@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+
 from prflwr.utils import non_iid_partitions
 
 CONCENTRATION = 1

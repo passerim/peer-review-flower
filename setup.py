@@ -6,6 +6,8 @@ from setuptools import find_packages, setup
 
 here = pathlib.Path(__file__).parent.resolve()
 
+description = "Peer Review Flower: Peer Review Federated Learning using Flower"
+
 # Get the long description from the README file
 #
 long_description = (here / "README.md").read_text(encoding="utf-8")
@@ -26,7 +28,7 @@ setup(
     version="0.1.0",  # Required
     # This is a one-line description or tagline of what your project does.
     #
-    description="Peer Review Flower: Federated Learning with Peer Review using Flower",  # Optional
+    description=description,  # Optional
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
     #
@@ -64,7 +66,7 @@ setup(
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match.
     #
-    python_requires=">=3.7, <4",
+    python_requires=">=3.7, <4",  # Optional
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
     # installed, so they must be valid existing projects.

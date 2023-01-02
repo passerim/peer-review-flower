@@ -1,12 +1,12 @@
-import sys
 from abc import ABC
 from functools import wraps
 from typing import Dict, List, Optional, Tuple, Union
 
 from flwr.common import FitIns, FitRes, Parameters, Scalar
-from flwr.server.client_manager import ClientManager
+from flwr.server import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
+
 from prflwr.peer_review.strategy.exceptions import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
@@ -18,14 +18,14 @@ from prflwr.peer_review.strategy.exceptions import (
     EvaluateException,
     InitializeParametersException,
     StopReviewException,
+    StrategyException,
 )
 from prflwr.peer_review.strategy.prmultrev import MultipleReviewStrategy
 
 
 class PeerReviewStrategy(MultipleReviewStrategy, ABC):
     """Abstract class to extend implementing methods that define a federated
-    learning strategy with support to performing multiple review rounds.
-    """
+    learning strategy with support to performing multiple review rounds."""
 
     __strategy_methods = [
         "configure_fit",
@@ -54,7 +54,7 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
         def handle(*args, **kwargs):
             try:
                 return method(*args, **kwargs)
-            except Exception as e:
+            except StrategyException as e:
                 if isinstance(e, ConfigureTrainException):
                     return None
                 elif isinstance(e, ConfigureReviewException):
@@ -75,11 +75,6 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
                     return True
                 elif isinstance(e, InitializeParametersException):
                     return None
-                else:
-                    exc = sys.exc_info()[0]
-                    raise TypeError(
-                        f"Cannot catch error or exception of type: {exc.__name__}"
-                    )
 
         return handle
 

@@ -1,9 +1,22 @@
+# Library dependencies
 flwr[simulation]==1.0.0
 numpy
-torch
-torchvision
 overrides
+
+# Development tools
+black
+coverage
+docformatter
+isort
 flake8
 mypy
-isort
-black
+pylint
+
+# Tools required by tests and experiments
+ipykernel
+jupyter
+matplotlib
+pandas
+scikit-learn
+torch
+torchvision

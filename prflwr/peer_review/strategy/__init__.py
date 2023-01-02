@@ -1,4 +1,4 @@
-from .exceptions import (
+from prflwr.peer_review.strategy.exceptions import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
     AggregateReviewException,
@@ -9,9 +9,10 @@ from .exceptions import (
     EvaluateException,
     InitializeParametersException,
     StopReviewException,
+    StrategyException,
 )
-from .fedavg import PeerReviewedFedAvg
-from .strategy import PeerReviewStrategy
+from prflwr.peer_review.strategy.fedavg import PeerReviewedFedAvg
+from prflwr.peer_review.strategy.strategy import PeerReviewStrategy
 
 __all__ = [
     "PeerReviewStrategy",
@@ -26,4 +27,5 @@ __all__ = [
     "EvaluateException",
     "StopReviewException",
     "InitializeParametersException",
+    "StrategyException",
 ]

@@ -2,10 +2,12 @@ import unittest
 from typing import Dict, List, Optional, Tuple, Union
 from unittest.mock import MagicMock
 
-from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Scalar
-from flwr.server.client_manager import ClientManager
+from flwr.common import EvaluateIns, EvaluateRes, Parameters, Scalar
+from flwr.server import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from overrides import overrides
+
+from prflwr.peer_review import ReviewIns, ReviewRes, TrainIns, TrainRes
 from prflwr.peer_review.strategy import (
     AggregateAfterReviewException,
     AggregateEvaluateException,
@@ -28,15 +30,15 @@ class FailingStrategy(PeerReviewStrategy):
     @overrides
     def configure_train(
         self, server_round: int, parameters: Parameters, client_manager: ClientManager
-    ) -> List[Tuple[ClientProxy, FitIns]]:
+    ) -> List[Tuple[ClientProxy, TrainIns]]:
         raise ConfigureTrainException
 
     @overrides
     def aggregate_train(
         self,
         server_round: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+        results: List[Tuple[ClientProxy, TrainRes]],
+        failures: List[Union[Tuple[ClientProxy, TrainRes], BaseException]],
         parameters: Optional[Parameters] = None,
     ) -> List[Tuple[Optional[Parameters], Dict[str, Scalar]]]:
         raise AggregateTrainException
@@ -50,7 +52,7 @@ class FailingStrategy(PeerReviewStrategy):
         client_manager: ClientManager,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],
-    ) -> List[Tuple[ClientProxy, FitIns]]:
+    ) -> List[Tuple[ClientProxy, ReviewIns]]:
         raise ConfigureReviewException
 
     @overrides
@@ -58,8 +60,8 @@ class FailingStrategy(PeerReviewStrategy):
         self,
         server_round: int,
         review_round: int,
-        results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+        results: List[Tuple[ClientProxy, ReviewRes]],
+        failures: List[Union[Tuple[ClientProxy, ReviewRes], BaseException]],
         parameters: Parameters,
         parameters_aggregated: List[Optional[Parameters]],
         metrics_aggregated: List[Dict[str, Scalar]],

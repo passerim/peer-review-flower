@@ -12,8 +12,8 @@ def non_iid_partitions(
     concentration: float,
     seed: Optional[Union[int, SeedSequence, BitGenerator, Generator]] = None,
 ) -> List[np.ndarray]:
-    """Partition a dataset to produce non iid partitions sampling
-    from a Dirichlet distribution.
+    """Partition a dataset to produce non iid partitions sampling from a
+    Dirichlet distribution.
 
     Parameters
     ----------

@@ -4,28 +4,33 @@ from unittest.mock import MagicMock, Mock
 
 import numpy as np
 from flwr.common import (
+    Code,
+    DisconnectRes,
     EvaluateIns,
     EvaluateRes,
     FitIns,
     FitRes,
-    ndarrays_to_parameters,
-    parameters_to_ndarrays,
-)
-from flwr.common.typing import (
-    Code,
-    DisconnectRes,
     GetParametersIns,
     GetParametersRes,
     GetPropertiesIns,
     GetPropertiesRes,
     ReconnectIns,
     Status,
+    ndarrays_to_parameters,
+    parameters_to_ndarrays,
 )
-from flwr.server.client_manager import SimpleClientManager
+from flwr.server import SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
-from flwr.server.strategy.fedavg import FedAvg
+from flwr.server.strategy import FedAvg
 from overrides import overrides
-from prflwr.peer_review import PeerReviewClient, PeerReviewServer, PrConfig
+
+from prflwr.peer_review import (
+    PeerReviewNumPyClient,
+    PeerReviewServer,
+    PrConfig,
+    ReviewIns,
+    TrainIns,
+)
 from prflwr.peer_review.strategy import PeerReviewStrategy
 from tests.unit.test_strategy import FailingStrategy
 
@@ -83,9 +88,9 @@ class TestPeerReviewServerConstructor(unittest.TestCase):
 
 
 class ClientProxyAdapter(ClientProxy):
-    def __init__(self, cid: str, client: PeerReviewClient):
+    def __init__(self, cid: str, client: PeerReviewNumPyClient):
         super().__init__(cid)
-        self.client: PeerReviewClient = client
+        self.client: PeerReviewNumPyClient = client
 
     @overrides
     def get_properties(
@@ -159,7 +164,7 @@ def evaluate_mock() -> MagicMock:
 
 
 def failing_client():
-    client = MagicMock(spec=PeerReviewClient)
+    client = MagicMock(spec=PeerReviewNumPyClient)
     client.get_parameters = MagicMock(side_effect=Exception)
     client.train = MagicMock(side_effect=Exception)
     client.review = MagicMock(side_effect=Exception)
@@ -168,7 +173,7 @@ def failing_client():
 
 
 def failing_train_client():
-    client = MagicMock(spec=PeerReviewClient)
+    client = MagicMock(spec=PeerReviewNumPyClient)
     client.get_parameters = get_parameters_mock()
     client.train = MagicMock(side_effect=Exception)
     client.review = MagicMock(side_effect=Exception)
@@ -177,7 +182,7 @@ def failing_train_client():
 
 
 def failing_review_client():
-    client = MagicMock(spec=PeerReviewClient)
+    client = MagicMock(spec=PeerReviewNumPyClient)
     client.get_parameters = get_parameters_mock()
     client.train = train_mock()
     client.review = MagicMock(side_effect=Exception)
@@ -186,7 +191,7 @@ def failing_review_client():
 
 
 def failing_evaluate_client():
-    client = MagicMock(spec=PeerReviewClient)
+    client = MagicMock(spec=PeerReviewNumPyClient)
     client.get_parameters = get_parameters_mock()
     client.train = train_mock()
     client.review = review_mock()
@@ -195,7 +200,7 @@ def failing_evaluate_client():
 
 
 def successful_client():
-    client = MagicMock(spec=PeerReviewClient)
+    client = MagicMock(spec=PeerReviewNumPyClient)
     client.get_parameters = get_parameters_mock()
     client.train = train_mock()
     client.review = review_mock()
@@ -208,7 +213,7 @@ def configure_train_mock(clients: List[ClientProxy]):
         return_value=[
             (
                 client,
-                FitIns(
+                TrainIns(
                     parameters=ndarrays_to_parameters([TEST_ARRAY]),
                     config={PrConfig.REVIEW_FLAG: False},
                 ),
@@ -223,7 +228,7 @@ def configure_review_mock(clients: List[ClientProxy]):
         return_value=[
             (
                 client,
-                FitIns(
+                ReviewIns(
                     parameters=ndarrays_to_parameters([TEST_ARRAY]),
                     config={PrConfig.REVIEW_FLAG: True},
                 ),

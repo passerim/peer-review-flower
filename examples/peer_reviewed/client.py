@@ -1,20 +1,20 @@
 import argparse
 
 import flwr as fl
-from examples.centralized.centralized import Net, load_data, test, train
-from examples.centralized.utils import get_parameters, set_parameters, set_seed
-from prflwr.peer_review.client import PeerReviewClient
-from prflwr.peer_review.config import PrConfig
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.distributed import DistributedSampler
+
+from examples.centralized.centralized import Net, load_data, test, train
+from examples.centralized.utils import get_parameters, set_parameters, set_seed
+from prflwr.peer_review import PeerReviewNumPyClient, PrConfig
 
 SEED = 0
 BATCH_SIZE = 32
 DEVICE = "cpu"
 
 
-class CifarClient(PeerReviewClient):
+class CifarClient(PeerReviewNumPyClient):
     def __init__(
         self, model: nn.Module, trainloader: DataLoader, testloader: DataLoader
     ):

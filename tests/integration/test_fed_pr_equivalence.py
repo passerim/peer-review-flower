@@ -2,8 +2,8 @@ import os
 import re
 import unittest
 
-from .test_federated import run_fl as tf_run
-from .test_peer_reviewed import run_fl as pr_run
+from tests.integration.test_federated import run_fl as tf_run
+from tests.integration.test_peer_reviewed import run_fl as pr_run
 
 LOGGING_FILES = ["./tests/test_federated.log", "./tests/test_peer_reviewed.log"]
 NUM_CLASSES = 10

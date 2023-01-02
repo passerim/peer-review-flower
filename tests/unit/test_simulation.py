@@ -16,12 +16,12 @@ from flwr.common import (
     Status,
     ndarray_to_bytes,
 )
-from flwr.server import ServerConfig
-from flwr.server.client_manager import SimpleClientManager
-from flwr.simulation import start_simulation
+from flwr.server import ServerConfig, SimpleClientManager
 from overrides import overrides
+
 from prflwr.peer_review import PeerReviewServer
 from prflwr.peer_review.strategy import PeerReviewedFedAvg, PeerReviewStrategy
+from prflwr.simulation import start_simulation
 
 OK_STATUS = Status(Code.OK, "")
 
@@ -55,7 +55,6 @@ class NamedSimulationClient(Client):
 
 class TestSimulationWithPrServer(unittest.TestCase):
     def test_server_is_peer_reviewed(self):
-
         # Define strategy and assert it is a subclass of PeerReviewStrategy
         strategy = PeerReviewedFedAvg(
             fraction_review=1.0,
@@ -80,8 +79,6 @@ class TestSimulationWithPrServer(unittest.TestCase):
             strategy=strategy,
             server=server,
             client_manager=client_manager,
-            client_resources={"num_cpus": 1, "num_gpus": 0},
-            ray_init_args={"local_mode": True, "include_dashboard": False},
         )
         self.assertIsNotNone(hist)
 

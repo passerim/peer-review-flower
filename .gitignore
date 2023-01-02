@@ -1,31 +1,26 @@
-# Python cache
+# Python and Jupyter cache
 *__pycache__*
+.ipynb_checkpoints
 
-# VS Code config
+# VSCode config
 .vscode
 
 # PyCharm config
 .idea
 
-# Virtual environments directory
-envs
+# Virtual environments directory and files
+venv
 
 # Temp and log files
 *.log
 
 # Project specific directories
-data/*
-out
+data
 notebooks
-experiments/fedes/data
 
-# mypy cache
-*.mypy_cache
-
-# My utility files and directories
-.NOTES
+# Untracked files
 doc/report
-*__copy__*
 
-# License
-LICENSE
+# Coverage report directory and files
+.coverage
+htmlcov

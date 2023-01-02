@@ -3,34 +3,48 @@ from logging import DEBUG, ERROR, INFO, WARNING
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
-from flwr.common import FitRes, Parameters, Scalar
+from flwr.common import (
+    FitIns,
+    FitRes,
+    GetParametersIns,
+    GetParametersRes,
+    NDArrays,
+    Parameters,
+    Scalar,
+    ndarrays_to_parameters,
+)
 from flwr.common.logger import log
-from flwr.common.parameter import ndarrays_to_parameters
-from flwr.common.typing import FitIns, GetParametersIns, GetParametersRes, NDArrays
-from flwr.server.client_manager import ClientManager
+from flwr.server import ClientManager, History, Server, SimpleClientManager
 from flwr.server.client_proxy import ClientProxy
-from flwr.server.history import History
-from flwr.server.server import Server, fit_clients
+from flwr.server.server import fit_clients
 from overrides import overrides
+
 from prflwr.peer_review.config import PrConfig
+from prflwr.peer_review.strategy.fedavg import PeerReviewedFedAvg
 from prflwr.peer_review.strategy.strategy import PeerReviewStrategy
+from prflwr.peer_review.typing import ReviewIns, TrainIns
 from prflwr.utils.timer import FitTimer
 
 
 class PeerReviewServer(Server):
-    """Implementation of a federated learning server that supports an experimental
-    peer review mechanism of model updates based on trained parameters received by
-    clients and evaluation of these parameters over multiple review rounds.
-    """
+    """Implementation of a federated learning server that supports an
+    experimental peer review mechanism of model updates based on trained
+    parameters received by clients and evaluation of these parameters over
+    multiple review rounds."""
 
     def __init__(
         self,
-        client_manager: ClientManager,
-        strategy: PeerReviewStrategy,
+        client_manager: ClientManager = None,
+        strategy: PeerReviewStrategy = None,
         max_workers: Optional[int] = None,
         max_review_rounds: int = PrConfig.MAX_REVIEW_ROUNDS,
     ) -> None:
-        super().__init__(client_manager=client_manager, strategy=strategy)
+        super().__init__(
+            client_manager=client_manager
+            if client_manager is not None
+            else SimpleClientManager(),
+            strategy=strategy if strategy is not None else PeerReviewedFedAvg(),
+        )
         if isinstance(strategy, PeerReviewStrategy):
             self.max_review_rounds = max_review_rounds
             self.strategy: PeerReviewStrategy = strategy
@@ -210,6 +224,22 @@ class PeerReviewServer(Server):
                     failures.append((client, result))
         return results, failures
 
+    @staticmethod
+    def make_train_instructions(
+        client_instructions: List[Tuple[ClientProxy, TrainIns]]
+    ) -> List[Tuple[ClientProxy, FitIns]]:
+        def add_flag(fit_ins: TrainIns):
+            assert isinstance(fit_ins, (FitIns, TrainIns))
+            fit_ins.config.setdefault(PrConfig.REVIEW_FLAG, False)
+            return fit_ins
+
+        return list(
+            map(
+                lambda ins: (ins[0], cast(FitIns, add_flag(ins[1]))),
+                client_instructions,
+            )
+        )
+
     def fit_round(
         self, server_round: int, timeout: Optional[float]
     ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
@@ -225,6 +255,7 @@ class PeerReviewServer(Server):
         if not isinstance(client_instructions, list) or len(client_instructions) < 1:
             log(INFO, "train_round %s: no clients selected, cancel", server_round)
             return None, []
+        client_instructions = self.make_train_instructions(client_instructions)
         log(
             DEBUG,
             "train_round %s: strategy sampled %s clients (out of %s)",
@@ -268,15 +299,20 @@ class PeerReviewServer(Server):
         return parameters_aggregated, metrics_aggregated
 
     @staticmethod
-    def add_review_flag_if_missing(
-        review_instructions: List[Tuple[ClientProxy, FitIns]]
-    ):
+    def make_review_instructions(
+        client_instructions: List[Tuple[ClientProxy, ReviewIns]]
+    ) -> List[Tuple[ClientProxy, FitIns]]:
         def add_flag(fit_ins: FitIns):
-            assert isinstance(fit_ins, FitIns)
+            assert isinstance(fit_ins, (FitIns, ReviewIns))
             fit_ins.config.setdefault(PrConfig.REVIEW_FLAG, True)
             return fit_ins
 
-        return list(map(lambda ins: (ins[0], add_flag(ins[1])), review_instructions))
+        return list(
+            map(
+                lambda ins: (ins[0], cast(FitIns, add_flag(ins[1]))),
+                client_instructions,
+            )
+        )
 
     @staticmethod
     def check_review(
@@ -311,7 +347,7 @@ class PeerReviewServer(Server):
         if not isinstance(review_instructions, list) or len(review_instructions) < 1:
             log(INFO, "review_round %s: no clients selected, cancel", review_round)
             return None, []
-        review_instructions = self.add_review_flag_if_missing(review_instructions)
+        review_instructions = self.make_review_instructions(review_instructions)
         log(
             DEBUG,
             "review_round %s: strategy sampled %s clients (out of %s)",
