@@ -16,12 +16,14 @@ class PeerReviewClient(Client):
     @abstractmethod
     def train(self, ins: TrainIns) -> TrainRes:
         """Refine the provided parameters using the locally held dataset.
+
         Parameters
         ----------
         ins : TrainIns
             The training instructions containing (global) model parameters
             received from the server and a dictionary of configuration values
             used to customize the local training process.
+
         Returns
         -------
         TrainRes
@@ -32,12 +34,14 @@ class PeerReviewClient(Client):
     @abstractmethod
     def review(self, ins: ReviewIns) -> ReviewRes:
         """Refine the provided parameters using the locally held dataset.
+
         Parameters
         ----------
         ins : ReviewIns
             The review instructions containing (global) candidate parameters
             received from the server and a dictionary of configuration values
             used to customize the local review process.
+
         Returns
         -------
         ReviewRes

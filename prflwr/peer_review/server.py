@@ -115,7 +115,7 @@ class PeerReviewServer(Server):
             self.evaluate_centralized(server_round, history, timer)
 
             # Evaluate model on a sample of available clients
-            self.evaluate_on_clients(server_round, history, timeout)
+            self.evaluate_on_clients(server_round, history, timer, timeout)
 
         # Bookkeeping
         log(INFO, "FL finished in %s", timer.get_elapsed())
@@ -200,16 +200,27 @@ class PeerReviewServer(Server):
             history.add_metrics_centralized(server_round, metrics=metrics_cen)
 
     def evaluate_on_clients(
-        self, server_round: int, history: History, timeout: Optional[float]
+        self,
+        server_round: int,
+        history: History,
+        timer: FitTimer,
+        timeout: Optional[float],
     ) -> None:
         res_fed = self.evaluate_round(server_round, timeout)
         if res_fed:
             loss_fed, evaluate_metrics_fed, _ = res_fed
-            if loss_fed:
-                history.add_loss_distributed(server_round, loss=loss_fed)
-                history.add_metrics_distributed(
-                    server_round, metrics=evaluate_metrics_fed
-                )
+            if loss_fed is None:
+                return
+            log(
+                INFO,
+                "fit progress: (\n\tserver_round: %s,\n\tdistributed_loss: %s,\n\tmetrics: %s,\n\ttime_elapsed %s\n)",
+                server_round,
+                loss_fed,
+                evaluate_metrics_fed,
+                timer.get_elapsed(),
+            )
+            history.add_loss_distributed(server_round, loss=loss_fed)
+            history.add_metrics_distributed(server_round, metrics=evaluate_metrics_fed)
 
     @staticmethod
     def check_train(

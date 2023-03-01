@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/../
+
 echo "=== test.sh ==="
 python -m isort --check-only examples prflwr tests  && echo "- isort:         done" &&
 python -m black -q --check examples prflwr tests    && echo "- black:         done" &&

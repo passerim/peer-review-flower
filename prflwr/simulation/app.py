@@ -52,6 +52,7 @@ def start_simulation(
         An implementation of the abstract base class `flwr.server.ClientManager`.
         If no implementation is provided, then `start_simulation` will use
         `flwr.server.client_manager.SimpleClientManager`.
+
     Returns
     -------
         hist : flwr.server.history.History.
