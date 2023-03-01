@@ -23,7 +23,8 @@ def run_fl():
     clients = list()
     for i in range(NUM_CLIENTS):
         c = ctx.Process(
-            target=setup_client, args=(PORT, NUM_CLIENTS, i, TRAIN_TEST_FRACTION)
+            target=setup_client,
+            args=(PORT, i, NUM_CLIENTS, TRAIN_TEST_FRACTION),
         )
         c.start()
         clients.append(c)

@@ -10,23 +10,13 @@ from examples.centralized.utils import get_parameters, set_seed
 from prflwr.peer_review.server import PeerReviewServer
 from prflwr.peer_review.strategy.fedavg import PeerReviewedFedAvg
 
-SEED = 0
 
-
-def setup_server(port: int, num_rounds=1, logging_file: str = None):
-    set_seed(SEED)
-    params = get_parameters(Net())
+def setup_server(port: int, num_rounds=1, logging_file: str = None, seed: int = 0):
+    set_seed(seed)
 
     # Define strategy
     strategy = PeerReviewedFedAvg(
-        fraction_fit=1.0,
-        fraction_review=1.0,
-        fraction_evaluate=1.0,
-        min_fit_clients=2,
-        min_review_clients=2,
-        min_evaluate_clients=2,
-        min_available_clients=2,
-        initial_parameters=ndarrays_to_parameters(params),
+        initial_parameters=ndarrays_to_parameters(get_parameters(Net())),
     )
 
     # Set up logging if a log file is specified
@@ -45,10 +35,23 @@ def setup_server(port: int, num_rounds=1, logging_file: str = None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, choices=range(0, 65535), required=True)
-    parser.add_argument("--num_rounds", type=int, choices=range(0, 65535), default=1)
+    parser.add_argument(
+        "--port",
+        type=int,
+        choices=range(0, 65535),
+        required=True,
+        help="port used by the server",
+    )
+    parser.add_argument(
+        "--num_rounds",
+        type=int,
+        choices=range(0, 65535),
+        default=1,
+        help="number of iteration of federated learning",
+    )
+    parser.add_argument("--seed", default=0, type=int, help="random seed")
     args = parser.parse_args()
-    setup_server(args.port, args.num_rounds)
+    setup_server(args.port, args.num_rounds, seed=args.seed)
 
 
 if __name__ == "__main__":

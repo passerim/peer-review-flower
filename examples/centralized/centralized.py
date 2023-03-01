@@ -1,3 +1,5 @@
+import argparse
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,10 +8,6 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
 from examples.centralized.utils import set_seed
-
-SEED = 0
-BATCH_SIZE = 32
-DEVICE = "cpu"
 
 
 class Net(nn.Module):
@@ -35,7 +33,7 @@ class Net(nn.Module):
 def train(net, trainloader, epochs: int, device="cpu", verbose=False):
     """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.Adam(net.parameters())
     net.train()
     for epoch in range(epochs):
         correct, total, epoch_loss = 0, 0, 0.0
@@ -73,35 +71,69 @@ def test(net, testloader, device="cpu"):
     return loss, accuracy
 
 
-def load_data():
+def load_data(data_path: str):
     """Load CIFAR-10 (training and test set)."""
 
     # Normalizes pixels value between -1 and +1
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
-    trainset = CIFAR10("./data/cifar10", train=True, download=True, transform=transform)
-    testset = CIFAR10("./data/cifar10", train=False, download=True, transform=transform)
-    num_examples = {"trainset": len(trainset), "testset": len(testset)}
-    return trainset, testset, num_examples
+    trainset = CIFAR10(data_path, train=True, download=True, transform=transform)
+    testset = CIFAR10(data_path, train=False, download=True, transform=transform)
+    return trainset, testset
 
 
-def main():
-    set_seed(SEED)
+def main(
+    data_path: str = "./data/cifar10",
+    epochs: int = 1,
+    batch_size: int = 50,
+    device: str = "cpu",
+    seed: int = 0,
+):
+    set_seed(seed)
 
     # Load model
-    net = Net().to(DEVICE)
+    net = Net().to(device)
 
     # Load data
-    trainset, testset, _ = load_data()
-    trainloader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True)
-    testloader = DataLoader(testset, batch_size=BATCH_SIZE)
+    trainset, testset = load_data(data_path)
+    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
+    testloader = DataLoader(testset, batch_size=batch_size)
 
     # Start centralized training
-    train(net, trainloader, epochs=5, device=DEVICE, verbose=True)
-    loss, accuracy = test(net, testloader, device=DEVICE)
-    print(f"Final test set performance: loss {loss}, accuracy {accuracy}")
+    train(net, trainloader, epochs=epochs, device=device, verbose=True)
+    loss, accuracy = test(net, testloader, device=device)
+    return loss, accuracy
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="CIFAR-10 centralized training with Pytorch."
+    )
+    parser.add_argument(
+        "--data_path",
+        default="./data/cifar10",
+        type=str,
+        help="path where the cifar-10 dataset is stored",
+    )
+    parser.add_argument(
+        "--epochs", default=1, type=int, help="number of total epochs to run"
+    )
+    parser.add_argument(
+        "--batch_size",
+        default=50,
+        type=int,
+        help="number of images to use for computing gradients",
+    )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        type=str,
+        help="device to use for training (Use: cuda or cpu, Default: cpu)",
+    )
+    parser.add_argument("--seed", default=0, type=int, help="random seed")
+    args = parser.parse_args()
+    loss, accuracy = main(
+        args.data_path, args.epochs, args.batch_size, args.device, args.seed
+    )
+    print(f"Final test set performance: loss {loss}, accuracy {accuracy}")

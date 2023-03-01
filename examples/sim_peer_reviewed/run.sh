@@ -1,9 +1,8 @@
 #!/bin/bash
 
-if [ -f centralized.py ]; then cd ../..; fi
+if [ -f simulation.py ]; then cd ../..; fi
 
-# Executed cifar-10 centralized training script
-python -m examples.centralized.centralized &
+python -m examples.sim_peer_reviewed.simulation $@ &
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM

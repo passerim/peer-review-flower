@@ -7,9 +7,10 @@ from examples.centralized.centralized import Net, load_data, test, train
 from examples.centralized.utils import set_seed
 
 SEED = 0
-BATCH_SIZE = 32
+BATCH_SIZE = 25
 TRAIN_TEST_FRACTION = 0.1
 DEVICE = "cpu"
+DATA_PATH = "./data/cifar10"
 
 
 class TestCentralizedTraining(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestCentralizedTraining(unittest.TestCase):
         net = Net().to(DEVICE)
 
         # Load data
-        trainset, testset, _ = load_data()
+        trainset, testset = load_data(DATA_PATH)
         self.num_classes = len(trainset.classes)
         trainset = Subset(
             trainset, list(range(int(TRAIN_TEST_FRACTION * trainset.data.shape[0])))

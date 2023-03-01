@@ -1,57 +1,33 @@
 import argparse
 from functools import partial
 
-import flwr as fl
 from flwr.common import logger, ndarrays_to_parameters
 from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
 from flwr.simulation import start_simulation
-from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
 
-from examples.centralized.centralized import Net, load_data
+from examples.centralized.centralized import Net
 from examples.centralized.utils import get_parameters, set_seed
+from examples.federated.client import client_fn
 from examples.peer_reviewed.client import CifarClient
 from prflwr.peer_review.server import PeerReviewServer
 from prflwr.peer_review.strategy import PeerReviewedFedAvg
 
-SEED = 0
-BATCH_SIZE = 32
-DEVICE = "cpu"
 
-
-def client_fn(cid: str, num_clients: int) -> fl.client.NumPyClient:
-    set_seed(SEED)
-
-    # Load model
-    net = Net().to(DEVICE)
-
-    # Load data
-    trainset, testset, _ = load_data()
-    trainset_sampler = DistributedSampler(
-        trainset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED
-    )
-    trainloader = DataLoader(trainset, sampler=trainset_sampler, batch_size=BATCH_SIZE)
-    testset_sampler = DistributedSampler(
-        testset, num_replicas=num_clients, rank=int(cid), shuffle=True, seed=SEED
-    )
-    testloader = DataLoader(testset, sampler=testset_sampler, batch_size=BATCH_SIZE)
-    return CifarClient(net, trainloader, testloader)
-
-
-def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = None):
-    set_seed(SEED)
-    params = get_parameters(Net())
+def setup_server(
+    num_rounds: int = 1,
+    num_clients: int = 2,
+    logging_file: str = None,
+    data_path: str = "./data/cifar10",
+    batch_size: int = 50,
+    device: str = "cpu",
+    seed: int = 0,
+):
+    set_seed(seed)
 
     # Define strategy
     strategy = PeerReviewedFedAvg(
-        fraction_review=1.0,
-        fraction_fit=1.0,
-        fraction_evaluate=1.0,
-        min_fit_clients=2,
-        min_evaluate_clients=2,
-        min_available_clients=2,
-        initial_parameters=ndarrays_to_parameters(params),
+        initial_parameters=ndarrays_to_parameters(get_parameters(Net())),
     )
 
     # Set up logging if a log file is specified
@@ -60,25 +36,59 @@ def setup_server(num_rounds: int = 1, num_clients: int = 2, logging_file: str = 
 
     # Start simulation
     hist = start_simulation(
-        client_fn=partial(client_fn, num_clients=num_clients),
+        client_fn=partial(
+            client_fn,
+            num_clients=num_clients,
+            client_class=CifarClient,
+            data_path=data_path,
+            batch_size=batch_size,
+            device=device,
+            seed=seed,
+        ),
         num_clients=num_clients,
         server=PeerReviewServer(
             client_manager=SimpleClientManager(), strategy=strategy
         ),
         config=ServerConfig(num_rounds=num_rounds),
-        client_resources={"num_cpus": 1, "num_gpus": 1},
+        client_resources={"num_cpus": 1, "num_gpus": 0 if device == "cpu" else 1},
         ray_init_args={"local_mode": True, "include_dashboard": False},
     )
     return hist
 
 
-def main():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_rounds", type=int, choices=range(0, 65535), default=1)
     parser.add_argument("--num_clients", type=int, choices=range(0, 65535), default=2)
+    parser.add_argument(
+        "--data_path",
+        default="./data/cifar10",
+        type=str,
+        help="path where cifar-10 dataset is stored",
+    )
+    parser.add_argument(
+        "--epochs", default=1, type=int, help="number of total epochs to run"
+    )
+    parser.add_argument(
+        "--batch_size",
+        default=50,
+        type=int,
+        help="number of images to use to compute gradients",
+    )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        type=str,
+        help="device (Use: cuda or cpu, Default: cpu)",
+    )
+    parser.add_argument("--seed", default=0, type=int, help="random seed")
     args = parser.parse_args()
-    setup_server(args.num_rounds, args.num_clients)
-
-
-if __name__ == "__main__":
-    main()
+    setup_server(
+        args.num_rounds,
+        args.num_clients,
+        None,
+        args.data_path,
+        args.batch_size,
+        args.device,
+        args.seed,
+    )
