@@ -12,6 +12,10 @@ flake8
 mypy
 pylint
 
+# Documentation tools
+sphinx
+sphinx-rtd-theme
+
 # Tools required by tests and experiments
 ipykernel
 jupyter

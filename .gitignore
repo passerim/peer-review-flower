@@ -24,3 +24,6 @@ doc/report
 # Coverage report directory and files
 .coverage
 htmlcov
+
+# Documentation build directory
+doc/build

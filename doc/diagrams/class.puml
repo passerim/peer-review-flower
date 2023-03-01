@@ -1,0 +1,159 @@
+@startuml prflwr_class
+
+package flwr.server <<Rectangle>> {
+
+    class Server {
+        fit()
+    }
+
+    abstract ClientManager {
+        num_available()
+        sample()
+    }
+
+    abstract ClientProxy {
+        get_properties()
+        get_parameters()
+        fit()
+        evaluate()
+    }
+
+}
+
+package flwr.server.strategy <<Rectangle>> {
+
+    abstract Strategy {
+        initialize_parameters()
+        configure_fit()
+        aggregate_fit()
+        configure_evaluate()
+        aggregate_evaluate()
+        evaluate()
+    }
+
+    class FedAvg{
+    }
+
+}
+
+package flwr.common.typing <<Rectangle>> {
+
+    class FitIns{
+    }
+
+    class FitRes{
+    }
+
+}
+
+package flwr.client <<Rectangle>> {
+
+    abstract NumPyClient {
+        get_properties()
+        get_parameters()
+        fit()
+        evaluate()
+    }
+
+    abstract Client {
+        get_properties()
+        get_parameters()
+        fit()
+        evaluate()
+    }
+
+}
+
+
+package prflwr <<Rectangle>> {
+
+    package prflwr.peer_review <<Rectangle>> {
+
+        abstract PeerReviewNumPyClient {
+            train()
+            review()
+        }
+
+        abstract PeerReviewClient {
+            train()
+            review()
+        }
+
+        class PeerReviewServer{
+        }
+
+        class TrainIns{
+        }
+
+        class ReviewIns{
+        }
+
+        class TrainRes{
+        }
+
+        class ReviewRes{
+        }
+
+        package prflwr.peer_review.strategy <<Rectangle>> {
+
+            abstract MultipleReviewStrategy {
+                configure_train()
+                aggregate_train()
+                configure_review()
+                aggregate_review()
+                aggregate_after_review()
+                stop_review()
+            }
+
+            abstract PeerReviewStrategy {
+            }
+
+            class PeerReviewFedAvg {
+            }
+
+        }
+
+    }
+
+    package prflwr.utils <<Rectangle>> {
+
+        class FitTimer{
+            reset()
+            stop()
+            get_elapsed()
+            is_on()
+        }
+
+    }
+
+    package prflwr.simulation.transport <<Rectangle>> {
+
+        class SimulationClientProxy{
+        }
+
+    }
+}
+
+SimulationClientProxy *-u- Client
+
+PeerReviewNumPyClient -u-|> NumPyClient
+PeerReviewClient -u-|> Client
+
+SimulationClientProxy -u-|> ClientProxy
+
+PeerReviewServer -u-|> Server
+PeerReviewServer *-- ClientManager
+PeerReviewServer *-l- FitTimer
+PeerReviewServer *-- PeerReviewStrategy
+
+FedAvg -u-|> Strategy
+PeerReviewFedAvg -r-|> FedAvg
+PeerReviewFedAvg -u-|> PeerReviewStrategy
+PeerReviewStrategy -u-|> MultipleReviewStrategy
+MultipleReviewStrategy -r-|> Strategy
+
+TrainIns -u-|>  FitIns
+ReviewIns -u-|>  FitIns
+TrainRes -u-|>  FitRes
+ReviewRes -u-|>  FitRes
+@enduml

@@ -1,0 +1,20 @@
+@startuml prflwr_deployment
+node Client <<device>> {
+    rectangle Python <<execution environment>> {
+        component PeerReviewNumpyClient
+    }
+}
+node Server <<device>> {
+    rectangle Python <<execution environment>> {
+        component PeerReviewServer
+
+        component PeerReviewStrategy
+        interface MultipleReviewStrategy
+
+        PeerReviewServer ..> MultipleReviewStrategy
+        PeerReviewStrategy -- MultipleReviewStrategy
+    }
+}
+
+Client -- Server : <<gRPC>>
+@enduml

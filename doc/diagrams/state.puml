@@ -1,0 +1,17 @@
+@startuml prflwr_state
+hide empty description
+
+state receive <<choice>>
+state FitIns <<choice>>
+
+[*] --> PeerReviewNumPyClient
+
+PeerReviewNumPyClient --> receive : receive(msg:ServerMessage)
+receive -u--> FitIns : [type(msg)==FitIns]
+FitIns  -u--> PeerReviewNumPyClient : config[REVIEW_FLAG]==True \n\ review()
+FitIns  -u--> PeerReviewNumPyClient : config[REVIEW_FLAG]==None||False \n\ train()
+receive -u--> PeerReviewNumPyClient : [type(msg)==GetParametersIns] \n\ get_parameters()
+receive -u--> PeerReviewNumPyClient : [type(msg)==EvaluateIns] \n\ evaluate()
+receive -u--> PeerReviewNumPyClient : [type(msg)==GetPropertiesIns] \n\ get_properties()
+
+@enduml

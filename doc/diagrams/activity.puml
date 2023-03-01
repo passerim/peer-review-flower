@@ -1,0 +1,27 @@
+@startuml prflwr_activity
+
+start
+
+:init_parameters();
+: server_round <— 1 \n review_round <— 1|
+note right:• num_rounds is given \n when calling the FL loop. \n• MAX_REVIEW_ROUNDS \n can be set when initializing \n the server.
+while (server_round <= num_rounds) is (yes)
+    :fit_round();
+    while (review_round <= MAX_REVIEW_ROUNDS) is (yes)
+        :review_round();
+        if (stop_review()) then (yes)
+            break
+        else (no)
+            :review_round += 1|
+        endif
+    endwhile (no)
+    :aggregate_parameters();
+    :evaluate_centralized();
+    :evaluate_on_clients();
+    :server_round += 1|
+endwhile (no)
+:history>
+
+stop
+
+@enduml

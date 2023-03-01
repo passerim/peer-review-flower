@@ -1,0 +1,33 @@
+@startuml prflwr_component
+package prflwr {
+    package peer_review {
+        package strategy {
+            file exceptions.py <<module>>
+            rectangle MultipleReviewStrategy <<class>>
+            rectangle PeerReviewFedAvg <<class>>
+            rectangle PeerReviewStrategy <<class>>
+        }
+        rectangle PeerReviewServer <<class>>
+        rectangle PeerReviewNumPyClient <<class>>
+        rectangle PeerReviewClient <<class>>
+        rectangle PrConfig<<class>>
+        rectangle typing.py <<module>>
+    }
+    package utils {
+        rectangle FitTimer <<class>>
+        file dataset.py <<module>>
+    }
+}
+
+PeerReviewServer ..> PeerReviewStrategy
+PeerReviewServer ..> FitTimer
+PeerReviewFedAvg ..> PeerReviewStrategy
+PeerReviewStrategy ..> MultipleReviewStrategy
+PeerReviewNumPyClient ..> PrConfig
+PeerReviewClient ..> PrConfig
+PeerReviewServer ..> PrConfig
+PeerReviewStrategy ..> exceptions.py
+PeerReviewClient ..> typing.py
+MultipleReviewStrategy ..> typing.py
+PeerReviewServer ..> typing.py
+@enduml

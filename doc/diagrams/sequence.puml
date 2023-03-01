@@ -1,0 +1,24 @@
+@startuml prflwr_sequence
+PeerReviewServer -> PeerReviewStrategy: configure_train(parameters, client_manager)
+PeerReviewStrategy -> ClientManager: sample()
+ClientManager -> PeerReviewStrategy: clients
+PeerReviewStrategy -> PeerReviewServer: client_instructions:TrainIns
+PeerReviewServer -> PeerReviewNumPyClient: fit_client(client_instructions, REVIEW_FLAG=False|None)
+PeerReviewNumPyClient -> PeerReviewServer: results:TrainRes
+PeerReviewServer -> PeerReviewStrategy: aggregate_train(results, parameters)
+PeerReviewStrategy -> PeerReviewServer: aggregated_results
+loop do while stop_flag != TRUE
+    PeerReviewServer -> PeerReviewStrategy: configure_review(aggregated_results, parameters, client_manager)
+    PeerReviewStrategy -> ClientManager: sample()
+    ClientManager -> PeerReviewStrategy: clients
+    PeerReviewStrategy -> PeerReviewServer: review_instructions:ReviewIns
+    PeerReviewServer -> PeerReviewNumPyClient: fit_client(review_instructions, REVIEW_FLAG=True)
+    PeerReviewNumPyClient -> PeerReviewServer: results:ReviewRes
+    PeerReviewServer -> PeerReviewStrategy: aggregate_review(results, aggregated_results, parameters)
+    PeerReviewStrategy -> PeerReviewServer: aggregated_results
+    PeerReviewServer -> PeerReviewStrategy: stop_review()
+    PeerReviewStrategy -> PeerReviewServer: stop_flag
+end
+PeerReviewServer -> PeerReviewStrategy: aggregate_after_review(aggregated_results, parameters)
+PeerReviewStrategy -> PeerReviewServer: parameters_prime
+@enduml
