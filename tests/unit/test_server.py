@@ -461,7 +461,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             )
         ]
         failures = [BaseException()]
-        results, failures = PeerReviewServer.check_train(results, failures)
+        results, failures = PeerReviewServer._check_train(results, failures)
         self.assertEqual(len(results), 1)
         self.assertEqual(len(failures), 1)
         results = [
@@ -475,7 +475,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
                 ),
             )
         ]
-        results, failures = PeerReviewServer.check_train(results, failures)
+        results, failures = PeerReviewServer._check_train(results, failures)
         self.assertEqual(len(results), 0)
         self.assertEqual(len(failures), 2)
 
@@ -492,7 +492,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
             )
         ]
         failures = [BaseException()]
-        results, failures = PeerReviewServer.check_review(results, failures)
+        results, failures = PeerReviewServer._check_review(results, failures)
         self.assertEqual(len(results), 1)
         self.assertEqual(len(failures), 1)
         results = [
@@ -506,7 +506,7 @@ class TestPeerReviewServerUtils(unittest.TestCase):
                 ),
             )
         ]
-        results, failures = PeerReviewServer.check_review(results, failures)
+        results, failures = PeerReviewServer._check_review(results, failures)
         self.assertEqual(len(results), 0)
         self.assertEqual(len(failures), 2)
 

@@ -21,7 +21,7 @@ setup(
     # how users can install this project, e.g.: pip install sampleproject
     # And where it will live on PyPI: https://pypi.org/project/sampleproject/
     #
-    name="peer-reviewed-flower",  # Required
+    name="peer-review-flower",  # Required
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
     #
@@ -38,7 +38,7 @@ setup(
     long_description_content_type="text/markdown",  # Optional (see note above)
     # This should be a valid link to your project's main homepage.
     #
-    url="https://github.com/passerim/peer-reviewed-flower",  # Optional
+    url="https://github.com/passerim/peer-review-flower",  # Optional
     # This should be your name or the name of the organization which owns the
     # project.
     #

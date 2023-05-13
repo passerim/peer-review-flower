@@ -73,7 +73,7 @@ class PeerReviewServer(Server):
         for server_round in range(1, num_rounds + 1):
 
             # Train model on clients and replace previous global model
-            parameters_aggregated, metrics_aggregated = self.fit_round(
+            parameters_aggregated, metrics_aggregated = self.train_round(
                 server_round, timeout
             )
 
@@ -223,7 +223,7 @@ class PeerReviewServer(Server):
             history.add_metrics_distributed(server_round, metrics=evaluate_metrics_fed)
 
     @staticmethod
-    def check_train(
+    def _check_train(
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ):
@@ -236,7 +236,7 @@ class PeerReviewServer(Server):
         return results, failures
 
     @staticmethod
-    def make_train_instructions(
+    def _make_train_instructions(
         client_instructions: List[Tuple[ClientProxy, TrainIns]]
     ) -> List[Tuple[ClientProxy, FitIns]]:
         def add_flag(fit_ins: TrainIns):
@@ -251,11 +251,6 @@ class PeerReviewServer(Server):
             )
         )
 
-    def fit_round(
-        self, server_round: int, timeout: Optional[float]
-    ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
-        return self.train_round(server_round, timeout)
-
     def train_round(
         self, server_round: int, timeout: Optional[float]
     ) -> Tuple[Optional[List[Parameters]], List[Dict[str, Scalar]]]:
@@ -266,7 +261,7 @@ class PeerReviewServer(Server):
         if not isinstance(client_instructions, list) or len(client_instructions) < 1:
             log(INFO, "train_round %s: no clients selected, cancel", server_round)
             return None, []
-        client_instructions = self.make_train_instructions(client_instructions)
+        client_instructions = self._make_train_instructions(client_instructions)
         log(
             DEBUG,
             "train_round %s: strategy sampled %s clients (out of %s)",
@@ -281,7 +276,7 @@ class PeerReviewServer(Server):
             self.max_workers,
             timeout,
         )
-        results, failures = self.check_train(results, failures)
+        results, failures = self._check_train(results, failures)
         log(
             DEBUG,
             "train_round %s received %s results and %s failures",
@@ -310,7 +305,7 @@ class PeerReviewServer(Server):
         return parameters_aggregated, metrics_aggregated
 
     @staticmethod
-    def make_review_instructions(
+    def _make_review_instructions(
         client_instructions: List[Tuple[ClientProxy, ReviewIns]]
     ) -> List[Tuple[ClientProxy, FitIns]]:
         def add_flag(fit_ins: FitIns):
@@ -326,7 +321,7 @@ class PeerReviewServer(Server):
         )
 
     @staticmethod
-    def check_review(
+    def _check_review(
         results: List[Tuple[ClientProxy, FitRes]],
         failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ):
@@ -358,7 +353,7 @@ class PeerReviewServer(Server):
         if not isinstance(review_instructions, list) or len(review_instructions) < 1:
             log(INFO, "review_round %s: no clients selected, cancel", review_round)
             return None, []
-        review_instructions = self.make_review_instructions(review_instructions)
+        review_instructions = self._make_review_instructions(review_instructions)
         log(
             DEBUG,
             "review_round %s: strategy sampled %s clients (out of %s)",
@@ -373,7 +368,7 @@ class PeerReviewServer(Server):
             self.max_workers,
             timeout,
         )
-        results, failures = self.check_review(results, failures)
+        results, failures = self._check_review(results, failures)
         log(
             DEBUG,
             "review_round %s received %s results and %s failures",

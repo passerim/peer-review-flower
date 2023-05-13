@@ -41,15 +41,13 @@ class TestCentralizedTraining(unittest.TestCase):
         testloader = DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False)
 
         # Check metrics before training
-        self.loss_start, self.accuracy_start = test(net, testloader, device=DEVICE)
+        self.loss_start, self.accuracy_start = test(net, testloader)
 
         # Start centralized training
-        train(net, trainloader, epochs=1, device=DEVICE, verbose=True)
+        train(net, trainloader, epochs=1, verbose=True)
 
         # Check metrics after training
-        self.loss_after_epoch, self.accuracy_after_epoch = test(
-            net, testloader, device=DEVICE
-        )
+        self.loss_after_epoch, self.accuracy_after_epoch = test(net, testloader)
 
     def test_loss_start(self):
         self.assertAlmostEqual(self.loss_start, -math.log(1 / self.num_classes), 1)

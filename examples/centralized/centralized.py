@@ -30,11 +30,12 @@ class Net(nn.Module):
         return x
 
 
-def train(net, trainloader, epochs: int, device="cpu", verbose=False):
+def train(net, trainloader, epochs: int, verbose=False):
     """Train the network on the training set."""
-    criterion = torch.nn.CrossEntropyLoss(reduction="sum")
-    optimizer = torch.optim.Adam(net.parameters())
     net.train()
+    device = next(net.parameters()).device
+    optimizer = torch.optim.Adam(net.parameters())
+    criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     for epoch in range(epochs):
         correct, total, epoch_loss = 0, 0, 0.0
         for images, labels in trainloader:
@@ -53,11 +54,12 @@ def train(net, trainloader, epochs: int, device="cpu", verbose=False):
             print(f"Epoch {epoch+1}: train loss {epoch_loss}, accuracy {epoch_acc}")
 
 
-def test(net, testloader, device="cpu"):
+def test(net, testloader):
     """Evaluate the network on the entire test set."""
+    net.eval()
+    device = next(net.parameters()).device
     criterion = torch.nn.CrossEntropyLoss(reduction="sum")
     correct, total, loss = 0, 0, 0.0
-    net.eval()
     with torch.no_grad():
         for images, labels in testloader:
             images, labels = images.to(device), labels.to(device)
@@ -101,8 +103,8 @@ def main(
     testloader = DataLoader(testset, batch_size=batch_size)
 
     # Start centralized training
-    train(net, trainloader, epochs=epochs, device=device, verbose=True)
-    loss, accuracy = test(net, testloader, device=device)
+    train(net, trainloader, epochs=epochs, verbose=True)
+    loss, accuracy = test(net, testloader)
     return loss, accuracy
 
 

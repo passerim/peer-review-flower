@@ -1,4 +1,4 @@
-# This workflow will build and install a Python Package.
+# This workflow will build and install a Python package.
 
 name: install
 
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
         python -m pip install -e .
     - name: Test installation
       run: |
-        [ $(python -m pip list | grep peer-reviewed-flower | wc -l) -eq 1 ]
+        [ $(python -m pip list | grep peer-review-flower | wc -l) -eq 1 ]
     - name: Test import
       run: |
         python -c "import prflwr.peer_review.config" &&

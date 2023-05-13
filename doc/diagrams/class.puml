@@ -8,6 +8,10 @@ package flwr.server <<Rectangle>> {
 
     abstract ClientManager {
         num_available()
+        register()
+        unregister()
+        all()
+        wait_for()
         sample()
     }
 
@@ -16,6 +20,7 @@ package flwr.server <<Rectangle>> {
         get_parameters()
         fit()
         evaluate()
+        reconnect()
     }
 
 }
@@ -120,6 +125,7 @@ package prflwr <<Rectangle>> {
         class FitTimer{
             reset()
             stop()
+            start()
             get_elapsed()
             is_on()
         }

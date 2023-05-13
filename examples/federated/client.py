@@ -11,7 +11,6 @@ from examples.federated.utils import client_fn
 class CifarClient(fl.client.NumPyClient):
     def __init__(self, model: torch.nn.Module, trainloader, testloader):
         self.model = model
-        self.device = next(model.parameters()).device
         self.trainloader = trainloader
         self.testloader = testloader
 
@@ -23,12 +22,12 @@ class CifarClient(fl.client.NumPyClient):
         epochs = 1
         if config.get("num_epochs") and isinstance(config.get("num_epochs"), int):
             epochs = config.get("num_epochs")
-        train(self.model, self.trainloader, epochs=epochs, device=self.device)
+        train(self.model, self.trainloader, epochs=epochs)
         return get_parameters(self.model), len(self.trainloader.dataset), {}
 
     def evaluate(self, parameters, config):
         set_parameters(self.model, parameters)
-        loss, accuracy = test(self.model, self.testloader, device=self.device)
+        loss, accuracy = test(self.model, self.testloader)
         return float(loss), len(self.testloader.dataset), {"accuracy": float(accuracy)}
 
 

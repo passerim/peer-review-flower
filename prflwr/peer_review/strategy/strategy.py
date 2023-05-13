@@ -46,10 +46,10 @@ class PeerReviewStrategy(MultipleReviewStrategy, ABC):
         for attr in dir(self):
             method = self.__getattribute__(attr)
             if callable(method) and attr in self.__strategy_methods:
-                setattr(self, attr, self.handle_exceptions(method))
+                setattr(self, attr, self._handle_exceptions(method))
 
     @staticmethod
-    def handle_exceptions(method):
+    def _handle_exceptions(method):
         @wraps(method)
         def handle(*args, **kwargs):
             try:
