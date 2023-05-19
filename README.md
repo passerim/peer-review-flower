@@ -2,6 +2,7 @@
 
 [![prflwr](https://github.com/passerim/peer-review-flower/actions/workflows/prflwr.yml/badge.svg)](https://github.com/passerim/peer-review-flower/actions/workflows/prflwr.yml)
 [![prflwr](https://github.com/passerim/peer-review-flower/actions/workflows/install.yml/badge.svg)](https://github.com/passerim/peer-review-flower/actions/workflows/install.yml)
+[![prflwr](https://github.com/passerim/peer-review-flower/actions/workflows/install.yml/badge.svg)](https://github.com/passerim/peer-review-flower/actions/workflows/docs.yml)
 
 Peer Review Federated Learning using [Flower](https://github.com/adap/flower).
 

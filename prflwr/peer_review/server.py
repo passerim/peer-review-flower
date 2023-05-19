@@ -71,7 +71,6 @@ class PeerReviewServer(Server):
         log(INFO, "FL starting")
         timer = FitTimer().start()
         for server_round in range(1, num_rounds + 1):
-
             # Train model on clients and replace previous global model
             parameters_aggregated, metrics_aggregated = self.train_round(
                 server_round, timeout
