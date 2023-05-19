@@ -1,7 +1,8 @@
 # Library dependencies
-flwr[simulation]==1.0.0
+flwr==1.1.0
 numpy
 overrides
+ray>=2.3.0
 
 # Development tools
 black
@@ -9,8 +10,6 @@ coverage
 docformatter
 isort
 flake8
-mypy
-pylint
 
 # Documentation tools
 sphinx

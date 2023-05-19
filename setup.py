@@ -72,8 +72,9 @@ setup(
     # installed, so they must be valid existing projects.
     #
     install_requires=[
-        "flwr[simulation]==1.0.0",
+        "flwr==1.1.0",
         "numpy",
         "overrides",
+        "ray>=2.3.0",
     ],  # Optional
 )

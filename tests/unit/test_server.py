@@ -114,19 +114,19 @@ class ClientProxyAdapter(ClientProxy):
         if is_review:
             return FitRes(
                 status=OK_STATUS,
-                *self.client.review(parameters_to_ndarrays(ins.parameters), ins.config)
+                *self.client.review(parameters_to_ndarrays(ins.parameters), ins.config),
             )
         else:
             return FitRes(
                 status=OK_STATUS,
-                *self.client.train(parameters_to_ndarrays(ins.parameters), ins.config)
+                *self.client.train(parameters_to_ndarrays(ins.parameters), ins.config),
             )
 
     @overrides
     def evaluate(self, ins: EvaluateIns, timeout: Optional[float]) -> EvaluateRes:
         return EvaluateRes(
             status=OK_STATUS,
-            *self.client.evaluate(parameters_to_ndarrays(ins.parameters), ins.config)
+            *self.client.evaluate(parameters_to_ndarrays(ins.parameters), ins.config),
         )
 
     @overrides
