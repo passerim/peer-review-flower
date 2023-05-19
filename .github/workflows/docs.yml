@@ -1,6 +1,6 @@
-# This workflow will install Python dependencies and run tests with a variety of Python versions.
+# This workflow will build the documentation for a Python package.
 
-name: prflwr
+name: docs
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Execute tests
+    - name: Build documentation
       run: |
-        chmod u+x ./dev/test.sh
-        ./dev/test.sh
+        chmod u+x ./dev/build-docs.sh
+        ./dev/build-docs.sh
