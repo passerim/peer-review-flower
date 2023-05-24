@@ -30,10 +30,10 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     def __init__(
         self,
         *,
-        fraction_fit: float = 1.0,
+        fraction_train: float = 1.0,
         fraction_review: float = 1.0,
         fraction_evaluate: float = 1.0,
-        min_fit_clients: int = 2,
+        min_train_clients: int = 2,
         min_review_clients: int = 2,
         min_evaluate_clients: int = 2,
         min_available_clients: int = 2,
@@ -43,25 +43,25 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
                 Optional[Tuple[float, Dict[str, Scalar]]],
             ]
         ] = None,
-        on_fit_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
+        on_train_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
         on_review_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
         on_evaluate_config_fn: Optional[Callable[[int], Dict[str, Scalar]]] = None,
         accept_failures: bool = True,
         initial_parameters: Optional[Parameters] = None,
-        fit_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
+        train_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
         evaluate_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
     ) -> None:
         """Peer Reviewed Federated Averaging strategy.
 
         Parameters
         ----------
-        fraction_fit : float, optional
+        fraction_train : float, optional
             Fraction of clients used during training. Defaults to 1.0.
         fraction_review : float, optional
             Fraction of clients used during reviews. Defaults to 1.0.
         fraction_evaluate : float, optional
             Fraction of clients used during validation. Defaults to 1.0.
-        min_fit_clients : int, optional
+        min_train_clients : int, optional
             Minimum number of clients used during training. Defaults to 2.
         min_review_clients : int, optional
             Minimum number of clients used during reviews. Defaults to 2.
@@ -76,7 +76,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             ]
         ]
             Optional function used for validation. Defaults to None.
-        on_fit_config_fn : Callable[[int], Dict[str, Scalar]], optional
+        on_train_config_fn : Callable[[int], Dict[str, Scalar]], optional
             Function used to configure training. Defaults to None.
         on_review_config_fn : Callable[[int], Dict[str, Scalar]], optional
             Function used to configure reviews. Defaults to None.
@@ -86,23 +86,23 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
             Whether accept rounds containing failures. Defaults to True.
         initial_parameters : Parameters, optional
             Initial global model parameters.
-        fit_metrics_aggregation_fn: Optional[MetricsAggregationFn]
+        train_metrics_aggregation_fn: Optional[MetricsAggregationFn]
             Metrics aggregation function, optional.
         evaluate_metrics_aggregation_fn: Optional[MetricsAggregationFn]
             Metrics aggregation function, optional.
         """
         super().__init__(
-            fraction_fit=fraction_fit,
+            fraction_fit=fraction_train,
             fraction_evaluate=fraction_evaluate,
-            min_fit_clients=min_fit_clients,
+            min_fit_clients=min_train_clients,
             min_evaluate_clients=min_evaluate_clients,
             min_available_clients=min_available_clients,
             evaluate_fn=evaluate_fn,
-            on_fit_config_fn=on_fit_config_fn,
+            on_fit_config_fn=on_train_config_fn,
             on_evaluate_config_fn=on_evaluate_config_fn,
             accept_failures=accept_failures,
             initial_parameters=initial_parameters,
-            fit_metrics_aggregation_fn=fit_metrics_aggregation_fn,
+            fit_metrics_aggregation_fn=train_metrics_aggregation_fn,
             evaluate_metrics_aggregation_fn=evaluate_metrics_aggregation_fn,
         )
         self.fraction_review = fraction_review
@@ -113,6 +113,14 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
     def __repr__(self) -> str:
         rep = f"PeerReviewFedAvg(accept_failures={self.accept_failures})"
         return rep
+
+    def num_train_clients(self, num_available_clients: int) -> Tuple[int, int]:
+        return super().num_fit_clients(num_available_clients)
+
+    def num_review_clients(self, num_available_clients: int) -> Tuple[int, int]:
+        """Use a fraction of available clients for review."""
+        num_clients = int(num_available_clients * self.fraction_review)
+        return max(num_clients, self.min_review_clients), self.min_available_clients
 
     @overrides
     def configure_train(
@@ -148,7 +156,7 @@ class PeerReviewedFedAvg(FedAvg, PeerReviewStrategy):
         if self.on_review_config_fn is not None:
             config = self.on_review_config_fn(server_round)
         # Sample clients
-        sample_size, min_num_clients = self.num_fit_clients(
+        sample_size, min_num_clients = self.num_review_clients(
             client_manager.num_available()
         )
         clients = client_manager.sample(

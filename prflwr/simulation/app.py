@@ -22,7 +22,7 @@ def start_simulation(
     strategy: Optional[Strategy] = None,
     client_manager: Optional[ClientManager] = None,
 ) -> History:
-    """Start a sequential Flower simulation.
+    """Start a concurrent Flower simulation.
 
     Parameters
     ----------
