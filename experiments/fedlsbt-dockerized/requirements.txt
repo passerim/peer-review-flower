@@ -1,0 +1,3 @@
+git+https://github.com/passerim/peer-review-flower.git
+pandas
+scikit-learn
